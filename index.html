@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>チケット掲示板 | 人魚姫ー泡沫の龍宮城ー</title>
+
+    <!-- LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <!-- Vue.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #0e4d64;
+            --primary-light: #1a7a8c;
+            --secondary: #00b4d8;
+            --accent: #ffd700;
+            --accent-light: #ffe066;
+            --bg-dark: #0a1628;
+            --bg-gradient: linear-gradient(135deg, #0a1628 0%, #0e4d64 50%, #00b4d8 100%);
+            --text: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --card-border: rgba(255, 255, 255, 0.2);
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--text);
+        }
+
+        /* ローディング */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay .bubbles {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .loading-overlay .bubble {
+            width: 12px;
+            height: 12px;
+            background: var(--secondary);
+            border-radius: 50%;
+            animation: bubble 1.2s ease-in-out infinite;
+        }
+
+        .loading-overlay .bubble:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-overlay .bubble:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bubble {
+
+            0%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: translateY(-15px);
+                opacity: 1;
+            }
+        }
+
+        /* ヘッダー */
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 16px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .header h1 {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .header h2 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        /* メインコンテンツ */
+        .main {
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        /* タブ */
+        .tabs {
+            display: flex;
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: var(--secondary);
+            color: var(--bg-dark);
+        }
+
+        /* カード */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: transform 0.2s;
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .card-user {
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .card-date {
+            background: var(--accent);
+            color: var(--bg-dark);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .card-body {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .card-tag {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .card-comment {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        /* 空状態 */
+        .empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* フォーム */
+        .form-section {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        select.form-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+        }
+
+        /* チェックボックスグループ */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checkbox-item.selected {
+            background: rgba(0, 180, 216, 0.3);
+            border-color: var(--secondary);
+        }
+
+        .checkbox-item input {
+            display: none;
+        }
+
+        .checkbox-box {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--card-border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .checkbox-item.selected .checkbox-box {
+            background: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+        .checkbox-box::after {
+            content: '✓';
+            color: var(--bg-dark);
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .checkbox-item.selected .checkbox-box::after {
+            opacity: 1;
+        }
+
+        /* ボタン */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary), var(--primary-light));
+            color: white;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: var(--bg-dark);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--card-border);
+            color: var(--text);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 13px;
+            width: auto;
+        }
+
+        /* フローティングアクションボタン */
+        .fab-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .fab {
+            flex: 1;
+            padding: 16px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+
+        .fab-offer {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: var(--bg-dark);
+        }
+
+        .fab-request {
+            background: linear-gradient(135deg, var(--secondary), var(--primary-light));
+            color: white;
+        }
+
+        /* マイページ投稿 */
+        .my-post {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .my-post:last-child {
+            border-bottom: none;
+        }
+
+        .my-post-info {
+            flex: 1;
+        }
+
+        .my-post-date {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .my-post-detail {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .my-post-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: var(--success);
+            color: white;
+        }
+
+        .status-completed {
+            background: var(--text-muted);
+            color: var(--bg-dark);
+        }
+
+        /* ナビゲーション */
+        .nav-back {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        /* セクション */
+        .section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        /* トースト */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 1000;
+            animation: fadeInUp 0.3s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- ローディング -->
+        <div class="loading-overlay" v-if="loading">
+            <div class="bubbles">
+                <div class="bubble"></div>
+                <div class="bubble"></div>
+                <div class="bubble"></div>
+            </div>
+            <p>読み込み中...</p>
+        </div>
+
+        <!-- ヘッダー -->
+        <header class="header" v-if="!loading">
+            <h1>🧜‍♀️ チケット掲示板</h1>
+            <h2>人魚姫ー泡沫の龍宮城ー</h2>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="main" v-if="!loading">
+
+            <!-- ホーム画面 -->
+            <template v-if="currentPage === 'home'">
+                <!-- タブ -->
+                <div class="tabs">
+                    <div class="tab" :class="{ active: activeTab === 'offers' }" @click="activeTab = 'offers'">
+                        🎫 譲りたい
+                    </div>
+                    <div class="tab" :class="{ active: activeTab === 'requests' }" @click="activeTab = 'requests'">
+                        🔍 探しています
+                    </div>
+                    <div class="tab" :class="{ active: activeTab === 'mypage' }" @click="activeTab = 'mypage'">
+                        👤 マイ投稿
+                    </div>
+                </div>
+
+                <!-- 譲りたい一覧 -->
+                <div v-if="activeTab === 'offers'">
+                    <div v-if="offers.length === 0" class="empty">
+                        <div class="empty-icon">🎫</div>
+                        <p>まだ投稿がありません</p>
+                    </div>
+                    <div v-else>
+                        <div class="card" v-for="offer in offers" :key="offer.id">
+                            <div class="card-header">
+                                <span class="card-user">{{ offer.displayName }}</span>
+                                <span class="card-date">{{ offer.showDate }}</span>
+                            </div>
+                            <div class="card-body">
+                                <span class="card-tag">{{ offer.quantity }}枚</span>
+                                <span class="card-tag" v-if="offer.price">{{ offer.price }}円</span>
+                                <span class="card-tag" v-if="offer.seatInfo">{{ offer.seatInfo }}</span>
+                            </div>
+                            <p class="card-comment" v-if="offer.comment">{{ offer.comment }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 探しています一覧 -->
+                <div v-if="activeTab === 'requests'">
+                    <div v-if="requests.length === 0" class="empty">
+                        <div class="empty-icon">🔍</div>
+                        <p>まだ投稿がありません</p>
+                    </div>
+                    <div v-else>
+                        <div class="card" v-for="req in requests" :key="req.id">
+                            <div class="card-header">
+                                <span class="card-user">{{ req.displayName }}</span>
+                                <span class="card-date">{{ req.desiredDates }}</span>
+                            </div>
+                            <div class="card-body">
+                                <span class="card-tag">{{ req.quantity }}枚希望</span>
+                                <span class="card-tag" v-if="req.maxBudget">〜{{ req.maxBudget }}円</span>
+                            </div>
+                            <p class="card-comment" v-if="req.comment">{{ req.comment }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- マイ投稿 -->
+                <div v-if="activeTab === 'mypage'">
+                    <div class="section">
+                        <div class="section-title">譲りたい投稿</div>
+                        <div class="card">
+                            <div v-if="myOffers.length === 0" class="empty" style="padding: 20px;">
+                                <p>投稿なし</p>
+                            </div>
+                            <div v-else>
+                                <div class="my-post" v-for="offer in myOffers" :key="offer.id">
+                                    <div class="my-post-info">
+                                        <div class="my-post-date">{{ offer.showDate }}</div>
+                                        <div class="my-post-detail">{{ offer.quantity }}枚 {{ offer.price ? offer.price +
+                                            '円' : '' }}</div>
+                                    </div>
+                                    <div class="my-post-actions">
+                                        <span class="status-badge"
+                                            :class="offer.status === '募集中' ? 'status-active' : 'status-completed'">
+                                            {{ offer.status }}
+                                        </span>
+                                        <button class="btn btn-small btn-outline" @click="cancelPost('offer', offer.id)"
+                                            v-if="offer.status === '募集中'">取消</button>
+                                        <button class="btn btn-small btn-success"
+                                            @click="completePost('offer', offer.id)"
+                                            v-if="offer.status === '募集中'">成立</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">探しています投稿</div>
+                        <div class="card">
+                            <div v-if="myRequests.length === 0" class="empty" style="padding: 20px;">
+                                <p>投稿なし</p>
+                            </div>
+                            <div v-else>
+                                <div class="my-post" v-for="req in myRequests" :key="req.id">
+                                    <div class="my-post-info">
+                                        <div class="my-post-date">{{ req.desiredDates }}</div>
+                                        <div class="my-post-detail">{{ req.quantity }}枚希望</div>
+                                    </div>
+                                    <div class="my-post-actions">
+                                        <span class="status-badge"
+                                            :class="req.status === '募集中' ? 'status-active' : 'status-completed'">
+                                            {{ req.status }}
+                                        </span>
+                                        <button class="btn btn-small btn-outline" @click="cancelPost('request', req.id)"
+                                            v-if="req.status === '募集中'">取消</button>
+                                        <button class="btn btn-small btn-success"
+                                            @click="completePost('request', req.id)"
+                                            v-if="req.status === '募集中'">成立</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAB -->
+                <div class="fab-container">
+                    <button class="fab fab-offer" @click="currentPage = 'postOffer'">
+                        🎫 譲りたい
+                    </button>
+                    <button class="fab fab-request" @click="currentPage = 'postRequest'">
+                        🔍 探しています
+                    </button>
+                </div>
+            </template>
+
+            <!-- 譲りたい投稿フォーム -->
+            <template v-if="currentPage === 'postOffer'">
+                <div class="nav-back" @click="currentPage = 'home'">← 戻る</div>
+                <h2 class="page-title">🎫 チケットを譲りたい</h2>
+
+                <div class="form-section">
+                    <label class="form-label">公演日時 *</label>
+                    <select class="form-input" v-model="offerForm.showDate">
+                        <option value="">選択してください</option>
+                        <option v-for="date in showDates" :key="date.id" :value="date.label">{{ date.label }}</option>
+                    </select>
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label">枚数 *</label>
+                    <select class="form-input" v-model="offerForm.quantity">
+                        <option value="">選択してください</option>
+                        <option value="1">1枚</option>
+                        <option value="2">2枚</option>
+                        <option value="3">3枚</option>
+                        <option value="4">4枚</option>
+                    </select>
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label">座席情報（任意）</label>
+                    <input type="text" class="form-input" v-model="offerForm.seatInfo" placeholder="例: A列10番">
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label">希望価格（任意）</label>
+                    <input type="number" class="form-input" v-model="offerForm.price" placeholder="例: 5000">
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label">コメント（任意）</label>
+                    <textarea class="form-input" rows="3" v-model="offerForm.comment"
+                        placeholder="その他伝えたいこと"></textarea>
+                </div>
+
+                <button class="btn btn-accent" @click="submitOffer"
+                    :disabled="!offerForm.showDate || !offerForm.quantity || submitting">
+                    {{ submitting ? '送信中...' : '投稿する' }}
+                </button>
+            </template>
+
+            <!-- 探しています投稿フォーム -->
+            <template v-if="currentPage === 'postRequest'">
+                <div class="nav-back" @click="currentPage = 'home'">← 戻る</div>
+                <h2 class="page-title">🔍 チケットを探しています</h2>
+
+                <div class="form-section">
+                    <label class="form-label">希望日時（複数選択可） *</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item" v-for="date in showDates" :key="date.id"
+                            :class="{ selected: requestForm.desiredDates.includes(date.label) }">
+                            <input type="checkbox" :value="date.label" v-model="requestForm.desiredDates">
+                            <span class="checkbox-box"></span>
+                            <span>{{ date.label }}</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label">希望枚数 *</label>
+                    <select class="form-input" v-model="requestForm.quantity">
+                        <option value="">選択してください</option>
+                        <option value="1">1枚</option>
+                        <option value="2">2枚</option>
+                        <option value="3">3枚</option>
+                        <option value="4">4枚</option>
+                    </select>
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label">予算上限（任意）</label>
+                    <input type="number" class="form-input" v-model="requestForm.maxBudget" placeholder="例: 6000">
+                </div>
+
+                <div class="form-section">
+                    <label class="form-label">コメント（任意）</label>
+                    <textarea class="form-input" rows="3" v-model="requestForm.comment"
+                        placeholder="その他伝えたいこと"></textarea>
+                </div>
+
+                <button class="btn btn-primary" @click="submitRequest"
+                    :disabled="requestForm.desiredDates.length === 0 || !requestForm.quantity || submitting">
+                    {{ submitting ? '送信中...' : '投稿する' }}
+                </button>
+            </template>
+
+        </main>
+
+        <!-- トースト -->
+        <div class="toast" v-if="toast">{{ toast }}</div>
+    </div>
+
+    <script>
+        // ==================== 設定 ====================
+        const LIFF_ID = 'YOUR_LIFF_ID'; // LIFF IDを設定
+        const GAS_URL = 'YOUR_GAS_WEBAPP_URL'; // GAS WebアプリURLを設定
+
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                // State
+                const loading = ref(true);
+                const currentPage = ref('home');
+                const activeTab = ref('offers');
+                const submitting = ref(false);
+                const toast = ref('');
+
+                // User
+                const userId = ref('');
+                const displayName = ref('');
+
+                // Data
+                const showDates = ref([
+                    { id: '1226_1500', label: '12/26（金）15:00' },
+                    { id: '1226_1830', label: '12/26（金）18:30' },
+                    { id: '1227_1400', label: '12/27（土）14:00' },
+                    { id: '1227_1730', label: '12/27（土）17:30' }
+                ]);
+                const offers = ref([]);
+                const requests = ref([]);
+                const myOffers = ref([]);
+                const myRequests = ref([]);
+
+                // Forms
+                const offerForm = ref({
+                    showDate: '',
+                    quantity: '',
+                    seatInfo: '',
+                    price: '',
+                    comment: ''
+                });
+
+                const requestForm = ref({
+                    desiredDates: [],
+                    quantity: '',
+                    maxBudget: '',
+                    comment: ''
+                });
+
+                // Methods
+                const showToast = (message) => {
+                    toast.value = message;
+                    setTimeout(() => { toast.value = ''; }, 3000);
+                };
+
+                const callApi = async (action, params = {}, body = null) => {
+                    let url = `${GAS_URL}?action=${action}`;
+                    Object.keys(params).forEach(key => {
+                        url += `&${key}=${encodeURIComponent(params[key])}`;
+                    });
+
+                    const options = {
+                        method: body ? 'POST' : 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    };
+
+                    if (body) {
+                        options.body = JSON.stringify(body);
+                    }
+
+                    const response = await fetch(url, options);
+                    return response.json();
+                };
+
+                const loadData = async () => {
+                    try {
+                        const [offersRes, requestsRes, myPostsRes] = await Promise.all([
+                            callApi('getOffers'),
+                            callApi('getRequests'),
+                            callApi('getMyPosts', { userId: userId.value })
+                        ]);
+
+                        offers.value = offersRes;
+                        requests.value = requestsRes;
+                        myOffers.value = myPostsRes.offers || [];
+                        myRequests.value = myPostsRes.requests || [];
+                    } catch (e) {
+                        console.error('データ取得エラー:', e);
+                    }
+                };
+
+                const submitOffer = async () => {
+                    submitting.value = true;
+                    try {
+                        await callApi('postOffer', {}, {
+                            userId: userId.value,
+                            displayName: displayName.value,
+                            showDate: offerForm.value.showDate,
+                            quantity: offerForm.value.quantity,
+                            seatInfo: offerForm.value.seatInfo,
+                            price: offerForm.value.price,
+                            comment: offerForm.value.comment
+                        });
+                        showToast('投稿しました！');
+                        offerForm.value = { showDate: '', quantity: '', seatInfo: '', price: '', comment: '' };
+                        currentPage.value = 'home';
+                        await loadData();
+                    } catch (e) {
+                        showToast('エラーが発生しました');
+                    }
+                    submitting.value = false;
+                };
+
+                const submitRequest = async () => {
+                    submitting.value = true;
+                    try {
+                        await callApi('postRequest', {}, {
+                            userId: userId.value,
+                            displayName: displayName.value,
+                            desiredDates: requestForm.value.desiredDates,
+                            quantity: requestForm.value.quantity,
+                            maxBudget: requestForm.value.maxBudget,
+                            comment: requestForm.value.comment
+                        });
+                        showToast('投稿しました！');
+                        requestForm.value = { desiredDates: [], quantity: '', maxBudget: '', comment: '' };
+                        currentPage.value = 'home';
+                        await loadData();
+                    } catch (e) {
+                        showToast('エラーが発生しました');
+                    }
+                    submitting.value = false;
+                };
+
+                const cancelPost = async (type, postId) => {
+                    if (!confirm('この投稿を取り消しますか？')) return;
+                    try {
+                        await callApi('cancelPost', { type, postId, userId: userId.value });
+                        showToast('取り消しました');
+                        await loadData();
+                    } catch (e) {
+                        showToast('エラーが発生しました');
+                    }
+                };
+
+                const completePost = async (type, postId) => {
+                    if (!confirm('この投稿を成立済みにしますか？')) return;
+                    try {
+                        await callApi('markCompleted', { type, postId, userId: userId.value });
+                        showToast('成立しました！');
+                        await loadData();
+                    } catch (e) {
+                        showToast('エラーが発生しました');
+                    }
+                };
+
+                // Initialize
+                onMounted(async () => {
+                    try {
+                        await liff.init({ liffId: LIFF_ID });
+
+                        if (!liff.isLoggedIn()) {
+                            liff.login();
+                            return;
+                        }
+
+                        const profile = await liff.getProfile();
+                        userId.value = profile.userId;
+                        displayName.value = profile.displayName;
+
+                        await loadData();
+                    } catch (e) {
+                        console.error('LIFF初期化エラー:', e);
+                        // デモモード（開発用）
+                        userId.value = 'demo_user';
+                        displayName.value = 'デモユーザー';
+                        await loadData();
+                    }
+
+                    loading.value = false;
+                });
+
+                return {
+                    loading,
+                    currentPage,
+                    activeTab,
+                    submitting,
+                    toast,
+                    showDates,
+                    offers,
+                    requests,
+                    myOffers,
+                    myRequests,
+                    offerForm,
+                    requestForm,
+                    submitOffer,
+                    submitRequest,
+                    cancelPost,
+                    completePost
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+
+</html>
