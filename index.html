@@ -809,22 +809,16 @@
                     setTimeout(() => { toast.value = ''; }, 3000);
                 };
 
-                const callApi = async (action, params = {}, body = null) => {
+                const callApi = async (action, params = {}) => {
                     let url = `${GAS_URL}?action=${action}`;
                     Object.keys(params).forEach(key => {
-                        url += `&${key}=${encodeURIComponent(params[key])}`;
+                        const value = params[key];
+                        if (value !== undefined && value !== null && value !== '') {
+                            url += `&${key}=${encodeURIComponent(value)}`;
+                        }
                     });
 
-                    const options = {
-                        method: body ? 'POST' : 'GET',
-                        headers: { 'Content-Type': 'application/json' }
-                    };
-
-                    if (body) {
-                        options.body = JSON.stringify(body);
-                    }
-
-                    const response = await fetch(url, options);
+                    const response = await fetch(url);
                     return response.json();
                 };
 
@@ -848,7 +842,7 @@
                 const submitOffer = async () => {
                     submitting.value = true;
                     try {
-                        await callApi('postOffer', {}, {
+                        await callApi('postOffer', {
                             userId: userId.value,
                             displayName: displayName.value,
                             showDate: offerForm.value.showDate,
@@ -870,10 +864,12 @@
                 const submitRequest = async () => {
                     submitting.value = true;
                     try {
-                        await callApi('postRequest', {}, {
+                        // 配列をカンマ区切りの文字列に変換
+                        const desiredDatesStr = requestForm.value.desiredDates.join(',');
+                        await callApi('postRequest', {
                             userId: userId.value,
                             displayName: displayName.value,
-                            desiredDates: requestForm.value.desiredDates,
+                            desiredDates: desiredDatesStr,
                             quantity: requestForm.value.quantity,
                             maxBudget: requestForm.value.maxBudget,
                             comment: requestForm.value.comment
