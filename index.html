@@ -1020,279 +1020,268 @@
                             </div>
                         </div>
                         <div class="card" v-for="ex in myExchanges" :key="ex.id" style="margin-bottom: 12px;">
-                            <div class="card-body" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-                                <div
-                                    style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 8px;">
+                            <div class="card-body"
+                                style="flex-direction: column; align-items: flex-start; gap: 8px; padding-top: 12px;">
+                                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
                                     <strong style="color: var(--secondary);">出:</strong>
                                     <span class="card-tag"
                                         style="white-space: nowrap; background: rgba(0,174,172,0.15); color: var(--secondary);">{{
                                         ex.offerDate }}</span>
                                 </div>
-                                <div
-                                    style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 8px;">
+                                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
                                     <strong style="color: #FF6B6B;">求:</strong>
                                     <span class="card-tag" v-for="(date, idx) in splitDates(ex.wantDates)" :key="idx"
                                         style="white-space: nowrap; background: rgba(255,107,107,0.15); color: #FF6B6B;">{{
                                         date }}</span>
                                 </div>
-                                <div
-                                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                                    <div style="font-size: 13px; color: var(--text-muted);">{{ ex.quantity }}枚 / {{
-                                        ex.seatType }}</div>
-                                    <div class="my-post-actions">
-                                        <span class="status-badge"
-                                            :class="ex.status === '募集中' ? 'status-active' : 'status-completed'">{{
-                                            ex.status }}</span>
-                                        <button class="btn btn-small btn-outline" @click="cancelPost('exchange', ex.id)"
-                                            v-if="ex.status === '募集中'">取消</button>
-                                        <button class="btn btn-small btn-success"
-                                            @click="completePost('exchange', ex.id)"
-                                            v-if="ex.status === '募集中'">成立</button>
-                                    </div>
-                                </div>
+                                <div style="font-size: 13px; color: var(--text-muted);">{{ ex.quantity }}枚 / {{
+                                    ex.seatType }}</div>
                             </div>
-                            <!-- コメントセクション -->
-                            <div class="comments-section">
-                                <div class="comments-toggle" @click="toggleComments(ex.id, 'exchange')">
-                                    <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(ex.id, 'exchange') > 0
-                                    ? getCommentCount(ex.id, 'exchange') + '件のコメント' : 'コメントする' }}
-                                </div>
-                                <div class="comments-list" v-if="expandedComments[ex.id + '_exchange']">
-                                    <div v-if="getCommentsForPost(ex.id, 'exchange').length === 0" class="no-comments">
-                                        まだコメントはありません</div>
-                                    <div v-else class="comment-item"
-                                        v-for="comment in getCommentsForPost(ex.id, 'exchange')" :key="comment.id">
-                                        <div class="comment-header">
-                                            <span class="comment-author">{{ comment.displayName }}</span>
-                                            <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
-                                        </div>
-                                        <div class="comment-content">{{ comment.content }}</div>
-                                    </div>
-                                    <div class="comment-input-area">
-                                        <input type="text" class="comment-input"
-                                            v-model="commentInputs[ex.id + '_exchange']" placeholder="コメントを入力..."
-                                            @keyup.enter="submitComment(ex.id, 'exchange')">
-                                        <button class="comment-submit" @click="submitComment(ex.id, 'exchange')"
-                                            :disabled="!commentInputs[ex.id + '_exchange'] || commentSubmitting[ex.id + '_exchange']">{{
-                                            commentSubmitting[ex.id + '_exchange'] ? '送信中...' : '送信' }}</button>
-                                    </div>
-                                </div>
+                            <div class="card-body" style="justify-content: flex-end; padding-top: 0;">
+                                <span class="status-badge"
+                                    :class="ex.status === '募集中' ? 'status-active' : 'status-completed'">{{ ex.status
+                                    }}</span>
+                                <button class="btn btn-small btn-outline" @click="cancelPost('exchange', ex.id)"
+                                    v-if="ex.status === '募集中'">取消</button>
+                                <button class="btn btn-small btn-success" @click="completePost('exchange', ex.id)"
+                                    v-if="ex.status === '募集中'">成立</button>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="section">
-                        <div class="section-title">探しています投稿</div>
-                        <div v-if="myRequests.length === 0" class="card" style="padding: 20px;">
-                            <div class="empty">
-                                <p>投稿なし</p>
+                        <!-- コメントセクション -->
+                        <div class="comments-section">
+                            <div class="comments-toggle" @click="toggleComments(ex.id, 'exchange')">
+                                <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(ex.id, 'exchange') > 0
+                                ? getCommentCount(ex.id, 'exchange') + '件のコメント' : 'コメントする' }}
                             </div>
-                        </div>
-                        <div class="card" v-for="req in myRequests" :key="req.id" style="margin-bottom: 12px;">
-                            <div class="card-body" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-                                <div
-                                    style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 8px;">
-                                    <strong style="color: #FF6B6B;">求:</strong>
-                                    <span class="card-tag" v-for="(date, idx) in splitDates(req.desiredDates)"
-                                        :key="idx"
-                                        style="white-space: nowrap; background: rgba(255,107,107,0.15); color: #FF6B6B;">{{
-                                        date }}</span>
-                                </div>
-                                <div
-                                    style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-                                    <div style="font-size: 13px; color: var(--text-muted);">{{ req.quantity }}枚 / {{
-                                        req.seatType }}</div>
-                                    <div class="my-post-actions">
-                                        <span class="status-badge"
-                                            :class="req.status === '募集中' ? 'status-active' : 'status-completed'">{{
-                                            req.status }}</span>
-                                        <button class="btn btn-small btn-outline" @click="cancelPost('request', req.id)"
-                                            v-if="req.status === '募集中'">取消</button>
-                                        <button class="btn btn-small btn-success"
-                                            @click="completePost('request', req.id)"
-                                            v-if="req.status === '募集中'">成立</button>
+                            <div class="comments-list" v-if="expandedComments[ex.id + '_exchange']">
+                                <div v-if="getCommentsForPost(ex.id, 'exchange').length === 0" class="no-comments">
+                                    まだコメントはありません</div>
+                                <div v-else class="comment-item"
+                                    v-for="comment in getCommentsForPost(ex.id, 'exchange')" :key="comment.id">
+                                    <div class="comment-header">
+                                        <span class="comment-author">{{ comment.displayName }}</span>
+                                        <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
                                     </div>
+                                    <div class="comment-content">{{ comment.content }}</div>
                                 </div>
-                            </div>
-                            <!-- コメントセクション -->
-                            <div class="comments-section">
-                                <div class="comments-toggle" @click="toggleComments(req.id, 'request')">
-                                    <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(req.id, 'request') > 0
-                                    ? getCommentCount(req.id, 'request') + '件のコメント' : 'コメントする' }}
-                                </div>
-                                <div class="comments-list" v-if="expandedComments[req.id + '_request']">
-                                    <div v-if="getCommentsForPost(req.id, 'request').length === 0" class="no-comments">
-                                        まだコメントはありません</div>
-                                    <div v-else class="comment-item"
-                                        v-for="comment in getCommentsForPost(req.id, 'request')" :key="comment.id">
-                                        <div class="comment-header">
-                                            <span class="comment-author">{{ comment.displayName }}</span>
-                                            <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
-                                        </div>
-                                        <div class="comment-content">{{ comment.content }}</div>
-                                    </div>
-                                    <div class="comment-input-area">
-                                        <input type="text" class="comment-input"
-                                            v-model="commentInputs[req.id + '_request']" placeholder="コメントを入力..."
-                                            @keyup.enter="submitComment(req.id, 'request')">
-                                        <button class="comment-submit" @click="submitComment(req.id, 'request')"
-                                            :disabled="!commentInputs[req.id + '_request'] || commentSubmitting[req.id + '_request']">{{
-                                            commentSubmitting[req.id + '_request'] ? '送信中...' : '送信' }}</button>
-                                    </div>
+                                <div class="comment-input-area">
+                                    <input type="text" class="comment-input"
+                                        v-model="commentInputs[ex.id + '_exchange']" placeholder="コメントを入力..."
+                                        @keyup.enter="submitComment(ex.id, 'exchange')">
+                                    <button class="comment-submit" @click="submitComment(ex.id, 'exchange')"
+                                        :disabled="!commentInputs[ex.id + '_exchange'] || commentSubmitting[ex.id + '_exchange']">{{
+                                        commentSubmitting[ex.id + '_exchange'] ? '送信中...' : '送信' }}</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- FAB -->
-                <div class="fab-container">
-                    <button class="fab fab-offer" @click="currentPage = 'postExchange'">
-                        <i class="fa-solid fa-exchange-alt"></i> 交換したい
-                    </button>
-                    <button class="fab fab-request" @click="currentPage = 'postRequest'">
-                        <i class="fa-solid fa-magnifying-glass"></i> 探しています
-                    </button>
+                <div class="section">
+                    <div class="section-title">探しています投稿</div>
+                    <div v-if="myRequests.length === 0" class="card" style="padding: 20px;">
+                        <div class="empty">
+                            <p>投稿なし</p>
+                        </div>
+                    </div>
+                    <div class="card" v-for="req in myRequests" :key="req.id" style="margin-bottom: 12px;">
+                        <div class="card-body"
+                            style="flex-direction: column; align-items: flex-start; gap: 8px; padding-top: 12px;">
+                            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
+                                <strong style="color: #FF6B6B;">求:</strong>
+                                <span class="card-tag" v-for="(date, idx) in splitDates(req.desiredDates)" :key="idx"
+                                    style="white-space: nowrap; background: rgba(255,107,107,0.15); color: #FF6B6B;">{{
+                                    date }}</span>
+                            </div>
+                            <div style="font-size: 13px; color: var(--text-muted);">{{ req.quantity }}枚 / {{
+                                req.seatType }}</div>
+                        </div>
+                        <div class="card-body" style="justify-content: flex-end; padding-top: 0;">
+                            <span class="status-badge"
+                                :class="req.status === '募集中' ? 'status-active' : 'status-completed'">{{ req.status
+                                }}</span>
+                            <button class="btn btn-small btn-outline" @click="cancelPost('request', req.id)"
+                                v-if="req.status === '募集中'">取消</button>
+                            <button class="btn btn-small btn-success" @click="completePost('request', req.id)"
+                                v-if="req.status === '募集中'">成立</button>
+                        </div>
+                    </div>
+                    <!-- コメントセクション -->
+                    <div class="comments-section">
+                        <div class="comments-toggle" @click="toggleComments(req.id, 'request')">
+                            <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(req.id, 'request') > 0
+                            ? getCommentCount(req.id, 'request') + '件のコメント' : 'コメントする' }}
+                        </div>
+                        <div class="comments-list" v-if="expandedComments[req.id + '_request']">
+                            <div v-if="getCommentsForPost(req.id, 'request').length === 0" class="no-comments">
+                                まだコメントはありません</div>
+                            <div v-else class="comment-item" v-for="comment in getCommentsForPost(req.id, 'request')"
+                                :key="comment.id">
+                                <div class="comment-header">
+                                    <span class="comment-author">{{ comment.displayName }}</span>
+                                    <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+                                </div>
+                                <div class="comment-content">{{ comment.content }}</div>
+                            </div>
+                            <div class="comment-input-area">
+                                <input type="text" class="comment-input" v-model="commentInputs[req.id + '_request']"
+                                    placeholder="コメントを入力..." @keyup.enter="submitComment(req.id, 'request')">
+                                <button class="comment-submit" @click="submitComment(req.id, 'request')"
+                                    :disabled="!commentInputs[req.id + '_request'] || commentSubmitting[req.id + '_request']">{{
+                                    commentSubmitting[req.id + '_request'] ? '送信中...' : '送信' }}</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </template>
+    </div>
+    </div>
 
-            <!-- 交換したい投稿フォーム -->
-            <template v-if="currentPage === 'postExchange'">
-                <div class="nav-back" @click="currentPage = 'home'"><i class="fa-solid fa-arrow-left"></i> 戻る</div>
-                <h2 class="page-title"><i class="fa-solid fa-exchange-alt"></i> チケットを交換したい</h2>
+    <!-- FAB -->
+    <div class="fab-container">
+        <button class="fab fab-offer" @click="currentPage = 'postExchange'">
+            <i class="fa-solid fa-exchange-alt"></i> 交換したい
+        </button>
+        <button class="fab fab-request" @click="currentPage = 'postRequest'">
+            <i class="fa-solid fa-magnifying-glass"></i> 探しています
+        </button>
+    </div>
+    </template>
 
-                <div class="form-section">
-                    <label class="form-label">交換に出すチケット *</label>
-                    <select class="form-input" v-model="exchangeForm.offerDate">
-                        <option value="">選択してください</option>
-                        <option v-for="date in showDates" :key="date.id" :value="date.label">{{ date.label }}</option>
-                    </select>
-                </div>
+    <!-- 交換したい投稿フォーム -->
+    <template v-if="currentPage === 'postExchange'">
+        <div class="nav-back" @click="currentPage = 'home'"><i class="fa-solid fa-arrow-left"></i> 戻る</div>
+        <h2 class="page-title"><i class="fa-solid fa-exchange-alt"></i> チケットを交換したい</h2>
 
-                <div class="form-section">
-                    <label class="form-label">欲しいチケット *</label>
-                    <select class="form-input" v-model="exchangeForm.wantDate">
-                        <option value="">選択してください</option>
-                        <option v-for="date in showDates" :key="date.id" :value="date.label">{{ date.label }}</option>
-                    </select>
-                </div>
-
-                <div class="form-section">
-                    <label class="form-label">枚数 *</label>
-                    <select class="form-input" v-model="exchangeForm.quantity">
-                        <option value="">選択してください</option>
-                        <option value="1">1枚</option>
-                        <option value="2">2枚</option>
-                        <option value="3">3枚</option>
-                        <option value="4">4枚</option>
-                    </select>
-                </div>
-
-                <div class="form-section">
-                    <label class="form-label">座席種別</label>
-                    <select class="form-input" v-model="exchangeForm.seatType">
-                        <option value="自由席">自由席</option>
-                        <option value="指定席">指定席</option>
-                    </select>
-                </div>
-
-                <div class="form-section">
-                    <label class="form-label">コメント（任意）</label>
-                    <textarea class="form-input" rows="3" v-model="exchangeForm.comment"
-                        placeholder="その他伝えたいこと"></textarea>
-                </div>
-
-                <button class="btn btn-accent" @click="submitExchange"
-                    :disabled="!exchangeForm.offerDate || !exchangeForm.wantDate || !exchangeForm.quantity || submitting">
-                    {{ submitting ? '送信中...' : '投稿する' }}
-                </button>
-            </template>
-
-            <!-- 探しています投稿フォーム -->
-            <template v-if="currentPage === 'postRequest'">
-                <div class="nav-back" @click="currentPage = 'home'"><i class="fa-solid fa-arrow-left"></i> 戻る</div>
-                <h2 class="page-title"><i class="fa-solid fa-magnifying-glass"></i> チケットを探しています</h2>
-
-                <div class="form-section">
-                    <label class="form-label">希望日時 *</label>
-                    <select class="form-input" v-model="requestForm.desiredDate">
-                        <option value="">選択してください</option>
-                        <option v-for="date in showDates" :key="date.id" :value="date.label">{{ date.label }}</option>
-                    </select>
-                </div>
-
-                <div class="form-section">
-                    <label class="form-label">希望枚数 *</label>
-                    <select class="form-input" v-model="requestForm.quantity">
-                        <option value="">選択してください</option>
-                        <option value="1">1枚</option>
-                        <option value="2">2枚</option>
-                        <option value="3">3枚</option>
-                        <option value="4">4枚</option>
-                    </select>
-                </div>
-
-                <div class="form-section">
-                    <label class="form-label">座席種別 *</label>
-                    <select class="form-input" v-model="requestForm.seatType">
-                        <option value="自由席">自由席</option>
-                        <option value="指定席">指定席</option>
-                    </select>
-                </div>
-
-                <div class="form-section">
-                    <label class="form-label">コメント（任意）</label>
-                    <textarea class="form-input" rows="3" v-model="requestForm.comment"
-                        placeholder="その他伝えたいこと"></textarea>
-                </div>
-
-                <button class="btn btn-primary" @click="submitRequest"
-                    :disabled="!requestForm.desiredDate || !requestForm.quantity || submitting">
-                    {{ submitting ? '送信中...' : '投稿する' }}
-                </button>
-            </template>
-
-        </main>
-
-        <!-- 表示名登録モーダル（初回） -->
-        <div class="modal-overlay" v-if="showRegisterModal">
-            <div class="modal">
-                <div class="modal-icon">🎭</div>
-                <div class="modal-title">ようこそ！</div>
-                <div class="modal-desc">
-                    掲示板で使用する<br>表示名を登録してください
-                </div>
-                <input type="text" class="modal-input" v-model="registerName" placeholder="ニックネームを入力" maxlength="20">
-                <div class="modal-hint">※他のユーザーに表示されます</div>
-                <button class="modal-btn" @click="registerDisplayName" :disabled="!registerName.trim() || registering">
-                    {{ registering ? '登録中...' : '登録する' }}
-                </button>
-            </div>
+        <div class="form-section">
+            <label class="form-label">交換に出すチケット *</label>
+            <select class="form-input" v-model="exchangeForm.offerDate">
+                <option value="">選択してください</option>
+                <option v-for="date in showDates" :key="date.id" :value="date.label">{{ date.label }}</option>
+            </select>
         </div>
 
-        <!-- 表示名編集モーダル -->
-        <div class="modal-overlay" v-if="showEditNameModal">
-            <div class="modal">
-                <div class="modal-icon">✏️</div>
-                <div class="modal-title">表示名を変更</div>
-                <div class="modal-desc">
-                    新しい表示名を入力してください
-                </div>
-                <input type="text" class="modal-input" v-model="editName" placeholder="新しい表示名" maxlength="20">
-                <div class="modal-hint">※変更は新しい投稿から反映されます</div>
-                <button class="modal-btn" @click="updateDisplayName" :disabled="!editName.trim() || registering"
-                    style="margin-bottom: 10px;">
-                    {{ registering ? '変更中...' : '変更する' }}
-                </button>
-                <button class="modal-btn" @click="showEditNameModal = false"
-                    style="background: #e9ecef; color: var(--text-muted);">
-                    キャンセル
-                </button>
-            </div>
+        <div class="form-section">
+            <label class="form-label">欲しいチケット *</label>
+            <select class="form-input" v-model="exchangeForm.wantDate">
+                <option value="">選択してください</option>
+                <option v-for="date in showDates" :key="date.id" :value="date.label">{{ date.label }}</option>
+            </select>
         </div>
 
-        <!-- トースト -->
-        <div class="toast" v-if="toast">{{ toast }}</div>
+        <div class="form-section">
+            <label class="form-label">枚数 *</label>
+            <select class="form-input" v-model="exchangeForm.quantity">
+                <option value="">選択してください</option>
+                <option value="1">1枚</option>
+                <option value="2">2枚</option>
+                <option value="3">3枚</option>
+                <option value="4">4枚</option>
+            </select>
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">座席種別</label>
+            <select class="form-input" v-model="exchangeForm.seatType">
+                <option value="自由席">自由席</option>
+                <option value="指定席">指定席</option>
+            </select>
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">コメント（任意）</label>
+            <textarea class="form-input" rows="3" v-model="exchangeForm.comment" placeholder="その他伝えたいこと"></textarea>
+        </div>
+
+        <button class="btn btn-accent" @click="submitExchange"
+            :disabled="!exchangeForm.offerDate || !exchangeForm.wantDate || !exchangeForm.quantity || submitting">
+            {{ submitting ? '送信中...' : '投稿する' }}
+        </button>
+    </template>
+
+    <!-- 探しています投稿フォーム -->
+    <template v-if="currentPage === 'postRequest'">
+        <div class="nav-back" @click="currentPage = 'home'"><i class="fa-solid fa-arrow-left"></i> 戻る</div>
+        <h2 class="page-title"><i class="fa-solid fa-magnifying-glass"></i> チケットを探しています</h2>
+
+        <div class="form-section">
+            <label class="form-label">希望日時 *</label>
+            <select class="form-input" v-model="requestForm.desiredDate">
+                <option value="">選択してください</option>
+                <option v-for="date in showDates" :key="date.id" :value="date.label">{{ date.label }}</option>
+            </select>
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">希望枚数 *</label>
+            <select class="form-input" v-model="requestForm.quantity">
+                <option value="">選択してください</option>
+                <option value="1">1枚</option>
+                <option value="2">2枚</option>
+                <option value="3">3枚</option>
+                <option value="4">4枚</option>
+            </select>
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">座席種別 *</label>
+            <select class="form-input" v-model="requestForm.seatType">
+                <option value="自由席">自由席</option>
+                <option value="指定席">指定席</option>
+            </select>
+        </div>
+
+        <div class="form-section">
+            <label class="form-label">コメント（任意）</label>
+            <textarea class="form-input" rows="3" v-model="requestForm.comment" placeholder="その他伝えたいこと"></textarea>
+        </div>
+
+        <button class="btn btn-primary" @click="submitRequest"
+            :disabled="!requestForm.desiredDate || !requestForm.quantity || submitting">
+            {{ submitting ? '送信中...' : '投稿する' }}
+        </button>
+    </template>
+
+    </main>
+
+    <!-- 表示名登録モーダル（初回） -->
+    <div class="modal-overlay" v-if="showRegisterModal">
+        <div class="modal">
+            <div class="modal-icon">🎭</div>
+            <div class="modal-title">ようこそ！</div>
+            <div class="modal-desc">
+                掲示板で使用する<br>表示名を登録してください
+            </div>
+            <input type="text" class="modal-input" v-model="registerName" placeholder="ニックネームを入力" maxlength="20">
+            <div class="modal-hint">※他のユーザーに表示されます</div>
+            <button class="modal-btn" @click="registerDisplayName" :disabled="!registerName.trim() || registering">
+                {{ registering ? '登録中...' : '登録する' }}
+            </button>
+        </div>
+    </div>
+
+    <!-- 表示名編集モーダル -->
+    <div class="modal-overlay" v-if="showEditNameModal">
+        <div class="modal">
+            <div class="modal-icon">✏️</div>
+            <div class="modal-title">表示名を変更</div>
+            <div class="modal-desc">
+                新しい表示名を入力してください
+            </div>
+            <input type="text" class="modal-input" v-model="editName" placeholder="新しい表示名" maxlength="20">
+            <div class="modal-hint">※変更は新しい投稿から反映されます</div>
+            <button class="modal-btn" @click="updateDisplayName" :disabled="!editName.trim() || registering"
+                style="margin-bottom: 10px;">
+                {{ registering ? '変更中...' : '変更する' }}
+            </button>
+            <button class="modal-btn" @click="showEditNameModal = false"
+                style="background: #e9ecef; color: var(--text-muted);">
+                キャンセル
+            </button>
+        </div>
+    </div>
+
+    <!-- トースト -->
+    <div class="toast" v-if="toast">{{ toast }}</div>
     </div>
 
     <script>
