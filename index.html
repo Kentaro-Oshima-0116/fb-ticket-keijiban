@@ -798,6 +798,16 @@
                 transform: rotate(360deg);
             }
         }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 0;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+        }
     </style>
 </head>
 
@@ -1012,6 +1022,23 @@
                         </button>
                     </div>
 
+                    <!-- Confirm Modal -->
+                    <div class="modal-overlay" v-if="showConfirmModal" @click="showConfirmModal = false">
+                        <div class="modal" @click.stop>
+                            <div class="modal-icon">⚠️</div>
+                            <h3 class="modal-title">確認</h3>
+                            <div class="modal-desc" style="margin-bottom: 24px;">
+                                {{ confirmModalMessage }}
+                            </div>
+                            <div class="modal-actions">
+                                <button class="btn btn-outline" @click="showConfirmModal = false">キャンセル</button>
+                                <button class="btn btn-primary" @click="executeConfirmAction" :disabled="submitting">
+                                    {{ submitting ? '処理中...' : 'OK' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="section">
                         <div class="section-title">交換したい投稿</div>
                         <div v-if="myExchanges.length === 0" class="card" style="padding: 20px;">
@@ -1037,13 +1064,16 @@
                                 <div style="font-size: 13px; color: var(--text-muted);">{{ ex.quantity }}枚 / {{
                                     ex.seatType }}</div>
                             </div>
-                            <div class="card-body" style="justify-content: flex-end; padding-top: 0;">
+                            <div class="card-body"
+                                style="justify-content: flex-end; align-items: center; gap: 8px; padding-top: 0;">
                                 <span class="status-badge"
                                     :class="ex.status === '募集中' ? 'status-active' : 'status-completed'">{{ ex.status
                                     }}</span>
-                                <button class="btn btn-small btn-outline" @click="cancelPost('exchange', ex.id)"
+                                <button class="btn btn-small btn-outline"
+                                    @click="confirmAction('exchange', 'cancel', ex.id)"
                                     v-if="ex.status === '募集中'">取消</button>
-                                <button class="btn btn-small btn-success" @click="completePost('exchange', ex.id)"
+                                <button class="btn btn-small btn-success"
+                                    @click="confirmAction('exchange', 'complete', ex.id)"
                                     v-if="ex.status === '募集中'">成立</button>
                             </div>
                             <!-- コメントセクション -->
@@ -1096,13 +1126,16 @@
                                 <div style="font-size: 13px; color: var(--text-muted);">{{ req.quantity }}枚 / {{
                                     req.seatType }}</div>
                             </div>
-                            <div class="card-body" style="justify-content: flex-end; padding-top: 0;">
+                            <div class="card-body"
+                                style="justify-content: flex-end; align-items: center; gap: 8px; padding-top: 0;">
                                 <span class="status-badge"
                                     :class="req.status === '募集中' ? 'status-active' : 'status-completed'">{{ req.status
                                     }}</span>
-                                <button class="btn btn-small btn-outline" @click="cancelPost('request', req.id)"
+                                <button class="btn btn-small btn-outline"
+                                    @click="confirmAction('request', 'cancel', req.id)"
                                     v-if="req.status === '募集中'">取消</button>
-                                <button class="btn btn-small btn-success" @click="completePost('request', req.id)"
+                                <button class="btn btn-small btn-success"
+                                    @click="confirmAction('request', 'complete', req.id)"
                                     v-if="req.status === '募集中'">成立</button>
                             </div>
                             <!-- コメントセクション -->
@@ -1309,6 +1342,10 @@
                 const showRegisterModal = ref(false);
                 const showEditNameModal = ref(false);
                 const registerName = ref('');
+                // editingName removed to avoid duplication
+                const showConfirmModal = ref(false);
+                const confirmModalMessage = ref('');
+                const pendingConfirmAction = ref(null);
                 const editName = ref('');
                 const registering = ref(false);
 
@@ -1533,8 +1570,29 @@
                     submitting.value = false;
                 };
 
+                const confirmAction = (type, action, postId) => {
+                    pendingConfirmAction.value = { type, action, postId };
+                    confirmModalMessage.value = action === 'cancel'
+                        ? 'この投稿を取り消しますか？'
+                        : 'この投稿を成立済みにしますか？';
+                    showConfirmModal.value = true;
+                };
+
+                const executeConfirmAction = async () => {
+                    if (!pendingConfirmAction.value) return;
+
+                    const { type, action, postId } = pendingConfirmAction.value;
+                    showConfirmModal.value = false;
+                    pendingConfirmAction.value = null;
+
+                    if (action === 'cancel') {
+                        await cancelPost(type, postId);
+                    } else if (action === 'complete') {
+                        await completePost(type, postId);
+                    }
+                };
+
                 const cancelPost = async (type, postId) => {
-                    if (!confirm('この投稿を取り消しますか？')) return;
                     try {
                         await callApi('cancelPost', { type, postId, userId: userId.value });
                         showToast('取り消しました');
@@ -1545,7 +1603,6 @@
                 };
 
                 const completePost = async (type, postId) => {
-                    if (!confirm('この投稿を成立済みにしますか？')) return;
                     try {
                         await callApi('markCompleted', { type, postId, userId: userId.value });
                         showToast('成立しました！');
