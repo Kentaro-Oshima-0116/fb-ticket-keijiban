@@ -846,7 +846,15 @@
                 </div>
 
                 <div class="form-section">
-                    <label class="form-label">座席情報（指定席の場合のみ）</label>
+                    <label class="form-label">座席種別 *</label>
+                    <select class="form-input" v-model="offerForm.seatType">
+                        <option value="自由席">自由席</option>
+                        <option value="指定席">指定席</option>
+                    </select>
+                </div>
+
+                <div class="form-section" v-if="offerForm.seatType === '指定席'">
+                    <label class="form-label">座席情報</label>
                     <input type="text" class="form-input" v-model="offerForm.seatInfo" placeholder="例: A列10番">
                 </div>
 
@@ -891,8 +899,11 @@
                 </div>
 
                 <div class="form-section">
-                    <label class="form-label">予算上限（任意）</label>
-                    <input type="number" class="form-input" v-model="requestForm.maxBudget" placeholder="例: 6000">
+                    <label class="form-label">座席種別 *</label>
+                    <select class="form-input" v-model="requestForm.seatType">
+                        <option value="自由席">自由席</option>
+                        <option value="指定席">指定席</option>
+                    </select>
                 </div>
 
                 <div class="form-section">
@@ -954,15 +965,15 @@
                 const offerForm = ref({
                     showDate: '',
                     quantity: '',
+                    seatType: '自由席',
                     seatInfo: '',
-                    price: '',
                     comment: ''
                 });
 
                 const requestForm = ref({
                     desiredDates: [],
                     quantity: '',
-                    maxBudget: '',
+                    seatType: '自由席',
                     comment: ''
                 });
 
