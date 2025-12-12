@@ -931,12 +931,14 @@
                             <div class="card-header">
                                 <span class="card-user">{{ req.displayName }}</span>
                             </div>
-                            <div
-                                style="padding: 0 16px 8px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
-                                <strong style="color: #FF6B6B; font-size: 13px;">求:</strong>
-                                <span class="card-tag" v-for="(date, idx) in splitDates(req.desiredDates)" :key="idx"
-                                    style="white-space: nowrap; background: rgba(255,107,107,0.15); color: #FF6B6B;">{{
-                                    date }}</span>
+                            <div class="card-body" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
+                                    <strong style="color: #FF6B6B;">求:</strong>
+                                    <span class="card-tag" v-for="(date, idx) in splitDates(req.desiredDates)"
+                                        :key="idx"
+                                        style="white-space: nowrap; background: rgba(255,107,107,0.15); color: #FF6B6B;">{{
+                                        date }}</span>
+                                </div>
                             </div>
                             <div class="card-body" style="font-size: 13px; color: var(--text-muted);">
                                 {{ req.quantity }}枚 / {{ req.seatType }}
@@ -1089,8 +1091,8 @@
                         <div class="card" v-for="req in myRequests" :key="req.id" style="margin-bottom: 12px;">
                             <div style="padding: 12px;">
                                 <div
-                                    style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px;">
-                                    <strong style="color: #FF6B6B; font-size: 13px;">求:</strong>
+                                    style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 8px;">
+                                    <strong style="color: #FF6B6B;">求:</strong>
                                     <span class="card-tag" v-for="(date, idx) in splitDates(req.desiredDates)"
                                         :key="idx"
                                         style="white-space: nowrap; background: rgba(255,107,107,0.15); color: #FF6B6B;">{{
