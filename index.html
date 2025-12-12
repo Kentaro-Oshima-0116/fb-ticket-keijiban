@@ -1025,7 +1025,6 @@
                     <!-- Confirm Modal -->
                     <div class="modal-overlay" v-if="showConfirmModal" @click="showConfirmModal = false">
                         <div class="modal" @click.stop>
-                            <div class="modal-icon">⚠️</div>
                             <h3 class="modal-title">確認</h3>
                             <div class="modal-desc" style="margin-bottom: 24px;">
                                 {{ confirmModalMessage }}
@@ -1238,7 +1237,7 @@
         <h2 class="page-title"><i class="fa-solid fa-magnifying-glass"></i> チケットを探しています</h2>
 
         <div class="form-section">
-            <label class="form-label">希望日時 *</label>
+            <label class="form-label">希望チケット *</label>
             <select class="form-input" v-model="requestForm.desiredDate">
                 <option value="">選択してください</option>
                 <option v-for="date in showDates" :key="date.id" :value="date.label">{{ date.label }}</option>
@@ -1352,7 +1351,8 @@
                     { id: '1226_1500', label: '12/26（金）15:00' },
                     { id: '1226_1830', label: '12/26（金）18:30' },
                     { id: '1227_1400', label: '12/27（土）14:00' },
-                    { id: '1227_1730', label: '12/27（土）17:30' }
+                    { id: '1227_1730', label: '12/27（土）17:30' },
+                    { id: 'bunka', label: '文化庁チケット' }
                 ]);
                 const exchanges = ref([]);
                 const requests = ref([]);
