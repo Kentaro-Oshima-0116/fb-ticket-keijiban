@@ -635,11 +635,150 @@
         .comment-submit:disabled {
             opacity: 0.5;
         }
+
+        /* モーダル */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px 24px;
+            max-width: 360px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .modal-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #f8f9fa;
+            border: 2px solid var(--card-border);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .modal-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .modal-btn:disabled {
+            opacity: 0.5;
+        }
+
+        /* プロフィールカード */
+        .profile-card {
+            background: linear-gradient(135deg, var(--primary-light), #e0f7fa);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-avatar {
+            width: 48px;
+            height: 48px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .profile-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .profile-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .profile-edit-btn {
+            background: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--secondary);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 
 <body>
     <div id="app">
+
+
         <!-- ローディング -->
         <div class="loading-overlay" v-if="loading">
             <div class="bubbles">
@@ -672,7 +811,7 @@
                         <i class="fa-solid fa-magnifying-glass"></i> 探しています
                     </div>
                     <div class="tab" :class="{ active: activeTab === 'mypage' }" @click="activeTab = 'mypage'">
-                        <i class="fa-solid fa-user"></i> マイ投稿
+                        <i class="fa-solid fa-user"></i> マイページ
                     </div>
                 </div>
 
@@ -773,8 +912,24 @@
                     </div>
                 </div>
 
-                <!-- マイ投稿 -->
+                <!-- マイページ -->
                 <div v-if="activeTab === 'mypage'">
+                    <!-- プロフィールセクション -->
+                    <div class="profile-card">
+                        <div class="profile-info">
+                            <div class="profile-avatar">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div>
+                                <div class="profile-label">表示名</div>
+                                <div class="profile-name">{{ displayName }}</div>
+                            </div>
+                        </div>
+                        <button class="profile-edit-btn" @click="showEditNameModal = true">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                    </div>
+
                     <div class="section">
                         <div class="section-title">譲りたい投稿</div>
                         <div class="card">
@@ -1022,6 +1177,43 @@
 
         </main>
 
+        <!-- 表示名登録モーダル（初回） -->
+        <div class="modal-overlay" v-if="showRegisterModal">
+            <div class="modal">
+                <div class="modal-icon">🎭</div>
+                <div class="modal-title">ようこそ！</div>
+                <div class="modal-desc">
+                    掲示板で使用する<br>表示名を登録してください
+                </div>
+                <input type="text" class="modal-input" v-model="registerName" placeholder="ニックネームを入力" maxlength="20">
+                <div class="modal-hint">※他のユーザーに表示されます</div>
+                <button class="modal-btn" @click="registerDisplayName" :disabled="!registerName.trim() || registering">
+                    {{ registering ? '登録中...' : '登録する' }}
+                </button>
+            </div>
+        </div>
+
+        <!-- 表示名編集モーダル -->
+        <div class="modal-overlay" v-if="showEditNameModal">
+            <div class="modal">
+                <div class="modal-icon">✏️</div>
+                <div class="modal-title">表示名を変更</div>
+                <div class="modal-desc">
+                    新しい表示名を入力してください
+                </div>
+                <input type="text" class="modal-input" v-model="editName" placeholder="新しい表示名" maxlength="20">
+                <div class="modal-hint">※変更は新しい投稿から反映されます</div>
+                <button class="modal-btn" @click="updateDisplayName" :disabled="!editName.trim() || registering"
+                    style="margin-bottom: 10px;">
+                    {{ registering ? '変更中...' : '変更する' }}
+                </button>
+                <button class="modal-btn" @click="showEditNameModal = false"
+                    style="background: #e9ecef; color: var(--text-muted);">
+                    キャンセル
+                </button>
+            </div>
+        </div>
+
         <!-- トースト -->
         <div class="toast" v-if="toast">{{ toast }}</div>
     </div>
@@ -1045,6 +1237,13 @@
                 // User
                 const userId = ref('');
                 const displayName = ref('');
+
+                // Registration modal
+                const showRegisterModal = ref(false);
+                const showEditNameModal = ref(false);
+                const registerName = ref('');
+                const editName = ref('');
+                const registering = ref(false);
 
                 // Data
                 const showDates = ref([
@@ -1114,6 +1313,75 @@
                     } catch (e) {
                         console.error('データ取得エラー:', e);
                     }
+                    loading.value = false;
+                };
+
+
+
+                const initializeLiff = async () => {
+                    try {
+                        await liff.init({ liffId: LIFF_ID });
+                        if (liff.isLoggedIn()) {
+                            const profile = await liff.getProfile();
+                            userId.value = profile.userId;
+
+                            // ユーザー登録状態を確認
+                            const userResult = await callApi('getUser', { userId: profile.userId });
+                            if (userResult.registered) {
+                                // 登録済み: 保存された表示名を使用
+                                displayName.value = userResult.displayName;
+                                await loadData();
+                            } else {
+                                // 未登録: 登録モーダルを表示
+                                displayName.value = profile.displayName; // 仮でLINE名を設定
+                                loading.value = false;
+                                showRegisterModal.value = true;
+                            }
+                        } else {
+                            liff.login();
+                        }
+                    } catch (err) {
+                        console.error('LIFF Initialization failed', err);
+                        loading.value = false;
+                    }
+                };
+
+                // 表示名登録（初回）
+                const registerDisplayName = async () => {
+                    if (!registerName.value.trim()) return;
+                    registering.value = true;
+                    try {
+                        await callApi('registerUser', {
+                            userId: userId.value,
+                            displayName: registerName.value.trim()
+                        });
+                        displayName.value = registerName.value.trim();
+                        showRegisterModal.value = false;
+                        showToast('登録完了！');
+                        await loadData();
+                    } catch (e) {
+                        showToast('エラーが発生しました');
+                    }
+                    registering.value = false;
+                };
+
+                // 表示名変更（マイページ）
+                const updateDisplayName = async () => {
+                    if (!editName.value.trim()) return;
+                    registering.value = true;
+                    try {
+                        await callApi('registerUser', {
+                            userId: userId.value,
+                            displayName: editName.value.trim()
+                        });
+                        displayName.value = editName.value.trim();
+                        showEditNameModal.value = false;
+                        editName.value = '';
+                        showToast('表示名を変更しました');
+                    } catch (e) {
+                        showToast('エラーが発生しました');
+                    }
+                    registering.value = false;
                 };
 
                 const submitOffer = async () => {
@@ -1253,30 +1521,10 @@
                     return `${month}/${day} ${hours}:${minutes}`;
                 };
 
+
                 // Initialize
                 onMounted(async () => {
-                    try {
-                        await liff.init({ liffId: LIFF_ID });
-
-                        if (!liff.isLoggedIn()) {
-                            liff.login();
-                            return;
-                        }
-
-                        const profile = await liff.getProfile();
-                        userId.value = profile.userId;
-                        displayName.value = profile.displayName;
-
-                        await loadData();
-                    } catch (e) {
-                        console.error('LIFF初期化エラー:', e);
-                        // デモモード（開発用）
-                        userId.value = 'demo_user';
-                        displayName.value = 'デモユーザー';
-                        await loadData();
-                    }
-
-                    loading.value = false;
+                    await initializeLiff();
                 });
 
                 return {
@@ -1305,7 +1553,16 @@
                     getCommentCount,
                     getCommentsForPost,
                     submitComment,
-                    formatTime
+                    formatTime,
+                    // User & Registration
+                    displayName,
+                    showRegisterModal,
+                    showEditNameModal,
+                    registerName,
+                    editName,
+                    registering,
+                    registerDisplayName,
+                    updateDisplayName
                 };
             }
         }).mount('#app');
