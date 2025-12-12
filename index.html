@@ -635,68 +635,11 @@
         .comment-submit:disabled {
             opacity: 0.5;
         }
-
-        /* ユーザー登録モーダル */
-        .registration-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        .registration-card {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        .registration-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--secondary);
-            margin-bottom: 20px;
-        }
-
-        .registration-desc {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-            line-height: 1.5;
-        }
     </style>
 </head>
 
 <body>
     <div id="app">
-        <!-- ユーザー登録モーダル -->
-        <div class="registration-overlay" v-if="!loading && !isRegistered && userId">
-            <div class="registration-card">
-                <div class="registration-title">ユーザー登録</div>
-                <div class="registration-desc">
-                    掲示板で使用するお名前（ニックネーム可）を登録してください。<br>
-                    この名前は他のユーザーにも公開されます。
-                </div>
-                <div class="form-section">
-                    <input type="text" class="form-input" v-model="registrationName" placeholder="表示名を入力 (例: 山田花子)"
-                        style="text-align: center;">
-                </div>
-                <button class="btn btn-primary" @click="registerUser" :disabled="!registrationName"
-                    style="width: 100%; margin-top: 10px;">
-                    登録してはじめる
-                </button>
-            </div>
-        </div>
-
         <!-- ローディング -->
         <div class="loading-overlay" v-if="loading">
             <div class="bubbles">
@@ -1103,9 +1046,6 @@
                 const userId = ref('');
                 const displayName = ref('');
 
-                const isRegistered = ref(false);
-                const registrationName = ref('');
-
                 // Data
                 const showDates = ref([
                     { id: '1226_1500', label: '12/26（金）15:00' },
@@ -1173,67 +1113,6 @@
                         myRequests.value = myPostsRes.requests || [];
                     } catch (e) {
                         console.error('データ取得エラー:', e);
-                    }
-                    loading.value = false;
-                };
-
-                const checkRegistration = async () => {
-                    try {
-                        const result = await callApi('getUser', { userId: userId.value });
-                        if (result.registered) {
-                            displayName.value = result.displayName;
-                            isRegistered.value = true;
-                        } else {
-                            isRegistered.value = false;
-                        }
-                    } catch (e) {
-                        console.error('Registration check failed', e);
-                    }
-                };
-
-                const registerUser = async () => {
-                    if (!registrationName.value) return;
-
-                    loading.value = true;
-                    try {
-                        const result = await callApi('registerUser', {
-                            userId: userId.value,
-                            displayName: registrationName.value
-                        });
-
-                        if (result.success) {
-                            displayName.value = registrationName.value;
-                            isRegistered.value = true;
-                            await loadData();
-                        }
-                    } catch (e) {
-                        showToast('登録に失敗しました');
-                    }
-                    loading.value = false;
-                };
-
-                const initializeLiff = async () => {
-                    try {
-                        await liff.init({ liffId: LIFF_ID });
-                        if (liff.isLoggedIn()) {
-                            const profile = await liff.getProfile();
-                            userId.value = profile.userId;
-
-                            // ユーザー登録状況確認
-                            await checkRegistration();
-
-                            if (isRegistered.value) {
-                                await loadData();
-                            } else {
-                                loading.value = false; // 登録画面を表示するためにローディング解除
-                            }
-                        } else {
-                            liff.login();
-                        }
-                    } catch (err) {
-                        console.error('LIFF Initialization failed', err);
-                        errorMessage.value = `LIFF Error: ${err.message}`;
-                        loading.value = false;
                     }
                 };
 
@@ -1374,18 +1253,34 @@
                     return `${month}/${day} ${hours}:${minutes}`;
                 };
 
-
                 // Initialize
                 onMounted(async () => {
-                    await initializeLiff();
+                    try {
+                        await liff.init({ liffId: LIFF_ID });
+
+                        if (!liff.isLoggedIn()) {
+                            liff.login();
+                            return;
+                        }
+
+                        const profile = await liff.getProfile();
+                        userId.value = profile.userId;
+                        displayName.value = profile.displayName;
+
+                        await loadData();
+                    } catch (e) {
+                        console.error('LIFF初期化エラー:', e);
+                        // デモモード（開発用）
+                        userId.value = 'demo_user';
+                        displayName.value = 'デモユーザー';
+                        await loadData();
+                    }
+
+                    loading.value = false;
                 });
 
                 return {
                     loading,
-                    errorMessage,
-                    isRegistered,
-                    registrationName,
-                    registerUser,
                     currentPage,
                     activeTab,
                     submitting,
