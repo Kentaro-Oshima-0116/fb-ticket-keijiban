@@ -891,8 +891,8 @@
                                                 v-model="commentInputs[offer.id + '_offer']" placeholder="コメントを入力..."
                                                 @keyup.enter="submitComment(offer.id, 'offer')">
                                             <button class="comment-submit" @click="submitComment(offer.id, 'offer')"
-                                                :disabled="!commentInputs[offer.id + '_offer'] || commentSubmitting[offer.id + '_offer']"
-                                                {{ commentSubmitting[offer.id + '_offer' ] ? '送信中...' : '送信' }}</button>
+                                                :disabled="!commentInputs[offer.id + '_offer'] || commentSubmitting[offer.id + '_offer']">{{
+                                                commentSubmitting[offer.id + '_offer'] ? '送信中...' : '送信' }}</button>
                                         </div>
                                     </template>
                                 </div>
