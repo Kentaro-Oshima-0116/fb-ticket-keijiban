@@ -772,6 +772,32 @@
             color: var(--secondary);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
+
+        /* コメントローディング */
+        .comment-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .comment-loading .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--card-border);
+            border-top-color: var(--secondary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -842,22 +868,33 @@
                                     '件のコメント' : 'コメントする' }}
                                 </div>
                                 <div v-if="expandedComments[offer.id + '_offer']" class="comments-list">
-                                    <div v-for="comment in getCommentsForPost(offer.id, 'offer')" :key="comment.id"
-                                        class="comment-item">
-                                        <div class="comment-header">
-                                            <span class="comment-author">{{ comment.displayName }}</span>
-                                            <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+                                    <!-- ローディング表示 -->
+                                    <div v-if="commentLoading[offer.id + '_offer']" class="comment-loading">
+                                        <div class="spinner"></div>
+                                        <span>読み込み中...</span>
+                                    </div>
+                                    <template v-else>
+                                        <div v-for="comment in getCommentsForPost(offer.id, 'offer')" :key="comment.id"
+                                            class="comment-item">
+                                            <div class="comment-header">
+                                                <span class="comment-author">{{ comment.displayName }}</span>
+                                                <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+                                            </div>
+                                            <div class="comment-content">{{ comment.content }}</div>
                                         </div>
-                                        <div class="comment-content">{{ comment.content }}</div>
-                                    </div>
-                                    <div class="comment-input-area">
-                                        <input type="text" class="comment-input"
-                                            v-model="commentInputs[offer.id + '_offer']" placeholder="コメントを入力..."
-                                            @keyup.enter="submitComment(offer.id, 'offer')">
-                                        <button class="comment-submit" @click="submitComment(offer.id, 'offer')"
-                                            :disabled="!commentInputs[offer.id + '_offer'] || commentSubmitting[offer.id + '_offer']">{{
-                                            commentSubmitting[offer.id + '_offer'] ? '送信中...' : '送信' }}</button>
-                                    </div>
+                                        <div v-if="getCommentsForPost(offer.id, 'offer').length === 0"
+                                            style="text-align: center; padding: 12px; color: var(--text-muted); font-size: 13px;">
+                                            まだコメントはありません
+                                        </div>
+                                        <div class="comment-input-area">
+                                            <input type="text" class="comment-input"
+                                                v-model="commentInputs[offer.id + '_offer']" placeholder="コメントを入力..."
+                                                @keyup.enter="submitComment(offer.id, 'offer')">
+                                            <button class="comment-submit" @click="submitComment(offer.id, 'offer')"
+                                                :disabled="!commentInputs[offer.id + '_offer'] || commentSubmitting[offer.id + '_offer']"
+                                                {{ commentSubmitting[offer.id + '_offer' ] ? '送信中...' : '送信' }}</button>
+                                        </div>
+                                    </template>
                                 </div>
                             </div>
                         </div>
@@ -890,22 +927,33 @@
                                     '件のコメント' : 'コメントする' }}
                                 </div>
                                 <div v-if="expandedComments[req.id + '_request']" class="comments-list">
-                                    <div v-for="comment in getCommentsForPost(req.id, 'request')" :key="comment.id"
-                                        class="comment-item">
-                                        <div class="comment-header">
-                                            <span class="comment-author">{{ comment.displayName }}</span>
-                                            <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+                                    <!-- ローディング表示 -->
+                                    <div v-if="commentLoading[req.id + '_request']" class="comment-loading">
+                                        <div class="spinner"></div>
+                                        <span>読み込み中...</span>
+                                    </div>
+                                    <template v-else>
+                                        <div v-for="comment in getCommentsForPost(req.id, 'request')" :key="comment.id"
+                                            class="comment-item">
+                                            <div class="comment-header">
+                                                <span class="comment-author">{{ comment.displayName }}</span>
+                                                <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+                                            </div>
+                                            <div class="comment-content">{{ comment.content }}</div>
                                         </div>
-                                        <div class="comment-content">{{ comment.content }}</div>
-                                    </div>
-                                    <div class="comment-input-area">
-                                        <input type="text" class="comment-input"
-                                            v-model="commentInputs[req.id + '_request']" placeholder="コメントを入力..."
-                                            @keyup.enter="submitComment(req.id, 'request')">
-                                        <button class="comment-submit" @click="submitComment(req.id, 'request')"
-                                            :disabled="!commentInputs[req.id + '_request'] || commentSubmitting[req.id + '_request']">{{
-                                            commentSubmitting[req.id + '_request'] ? '送信中...' : '送信' }}</button>
-                                    </div>
+                                        <div v-if="getCommentsForPost(req.id, 'request').length === 0"
+                                            style="text-align: center; padding: 12px; color: var(--text-muted); font-size: 13px;">
+                                            まだコメントはありません
+                                        </div>
+                                        <div class="comment-input-area">
+                                            <input type="text" class="comment-input"
+                                                v-model="commentInputs[req.id + '_request']" placeholder="コメントを入力..."
+                                                @keyup.enter="submitComment(req.id, 'request')">
+                                            <button class="comment-submit" @click="submitComment(req.id, 'request')"
+                                                :disabled="!commentInputs[req.id + '_request'] || commentSubmitting[req.id + '_request']">{{
+                                                commentSubmitting[req.id + '_request'] ? '送信中...' : '送信' }}</button>
+                                        </div>
+                                    </template>
                                 </div>
                             </div>
                         </div>
@@ -1262,6 +1310,7 @@
                 const expandedComments = ref({});
                 const commentInputs = ref({});
                 const commentSubmitting = ref({});
+                const commentLoading = ref({});
 
                 // Forms
                 const offerForm = ref({
@@ -1457,7 +1506,8 @@
                     expandedComments.value[key] = !expandedComments.value[key];
 
                     if (expandedComments.value[key]) {
-                        // コメントを読み込む
+                        // ローディング開始
+                        commentLoading.value[key] = true;
                         try {
                             const comments = await callApi('getComments', { postId, postType });
                             // 既存のコメントを更新
@@ -1468,6 +1518,8 @@
                         } catch (e) {
                             console.error('コメント取得エラー:', e);
                         }
+                        // ローディング終了
+                        commentLoading.value[key] = false;
                     }
                 };
 
@@ -1549,6 +1601,7 @@
                     expandedComments,
                     commentInputs,
                     commentSubmitting,
+                    commentLoading,
                     toggleComments,
                     getCommentCount,
                     getCommentsForPost,
