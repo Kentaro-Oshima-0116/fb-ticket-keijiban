@@ -855,7 +855,9 @@
                             </div>
                             <div class="card-body" style="flex-direction: column; align-items: flex-start; gap: 4px;">
                                 <div><strong style="color: var(--secondary);">出:</strong> {{ ex.offerDate }}</div>
-                                <div><strong style="color: var(--accent);">求:</strong> {{ ex.wantDates }}</div>
+                                <div><strong style="color: #FF6B6B;">求:</strong> <span class="card-tag"
+                                        v-for="(date, idx) in splitDates(ex.wantDates)" :key="idx"
+                                        style="margin-left: 4px; font-size: 11px;">{{ date }}</span></div>
                             </div>
                             <div class="card-body">
                                 <span class="card-tag">{{ ex.quantity }}枚</span>
@@ -921,7 +923,10 @@
                         <div class="card" v-for="req in requests" :key="req.id">
                             <div class="card-header">
                                 <span class="card-user">{{ req.displayName }}</span>
-                                <span class="card-date">{{ req.desiredDates }}</span>
+                            </div>
+                            <div class="card-body" style="flex-wrap: wrap; gap: 4px;">
+                                <span class="card-tag" v-for="(date, idx) in splitDates(req.desiredDates)" :key="idx">{{
+                                    date }}</span>
                             </div>
                             <div class="card-body">
                                 <span class="card-tag">{{ req.quantity }}枚希望</span>
@@ -1361,6 +1366,12 @@
                     setTimeout(() => { toast.value = ''; }, 3000);
                 };
 
+                // カンマ区切りの日付を配列に変換
+                const splitDates = (dates) => {
+                    if (!dates) return [];
+                    return dates.split(',').map(d => d.trim()).filter(d => d);
+                };
+
                 const callApi = async (action, params = {}) => {
                     let url = `${GAS_URL}?action=${action}`;
                     Object.keys(params).forEach(key => {
@@ -1679,7 +1690,9 @@
                     editName,
                     registering,
                     registerDisplayName,
-                    updateDisplayName
+                    updateDisplayName,
+                    // Helpers
+                    splitDates
                 };
             }
         }).mount('#app');
