@@ -1280,12 +1280,11 @@
     <!-- 表示名登録モーダル（初回） -->
     <div class="modal-overlay" v-if="showRegisterModal">
         <div class="modal">
-            <div class="modal-icon">🎭</div>
             <div class="modal-title">ようこそ！</div>
             <div class="modal-desc">
                 掲示板で使用する<br>表示名を登録してください
             </div>
-            <input type="text" class="modal-input" v-model="registerName" placeholder="ニックネームを入力" maxlength="20">
+            <input type="text" class="modal-input" v-model="registerName" placeholder="表示名を入力" maxlength="20">
             <div class="modal-hint">※他のユーザーに表示されます</div>
             <button class="modal-btn" @click="registerDisplayName" :disabled="!registerName.trim() || registering">
                 {{ registering ? '登録中...' : '登録する' }}
@@ -1296,7 +1295,6 @@
     <!-- 表示名編集モーダル -->
     <div class="modal-overlay" v-if="showEditNameModal">
         <div class="modal">
-            <div class="modal-icon">✏️</div>
             <div class="modal-title">表示名を変更</div>
             <div class="modal-desc">
                 新しい表示名を入力してください
