@@ -431,12 +431,18 @@
             justify-content: space-between;
             align-items: center;
             padding: 12px 0;
+            border-bottom: none;
+        }
+
+        .my-post-wrapper {
             border-bottom: 1px solid var(--card-border);
         }
 
-        .my-post:last-child {
+        .my-post-wrapper:last-child {
             border-bottom: none;
         }
+
+
 
         .my-post-info {
             flex: 1;
@@ -776,22 +782,61 @@
                                 <p>投稿なし</p>
                             </div>
                             <div v-else>
-                                <div class="my-post" v-for="offer in myOffers" :key="offer.id">
-                                    <div class="my-post-info">
-                                        <div class="my-post-date">{{ offer.showDate }}</div>
-                                        <div class="my-post-detail">{{ offer.quantity }}枚<span v-if="offer.seatType"> /
-                                                {{ offer.seatType }}</span></div>
+                                <div class="my-post-wrapper" v-for="offer in myOffers" :key="offer.id">
+                                    <div class="my-post">
+                                        <div class="my-post-info">
+                                            <div class="my-post-date">{{ offer.showDate }}</div>
+                                            <div class="my-post-detail">{{ offer.quantity }}枚<span
+                                                    v-if="offer.seatType"> / {{ offer.seatType }}</span></div>
+                                        </div>
+                                        <div class="my-post-actions">
+                                            <span class="status-badge"
+                                                :class="offer.status === '募集中' ? 'status-active' : 'status-completed'">
+                                                {{ offer.status }}
+                                            </span>
+                                            <button class="btn btn-small btn-outline"
+                                                @click="cancelPost('offer', offer.id)"
+                                                v-if="offer.status === '募集中'">取消</button>
+                                            <button class="btn btn-small btn-success"
+                                                @click="completePost('offer', offer.id)"
+                                                v-if="offer.status === '募集中'">成立</button>
+                                        </div>
                                     </div>
-                                    <div class="my-post-actions">
-                                        <span class="status-badge"
-                                            :class="offer.status === '募集中' ? 'status-active' : 'status-completed'">
-                                            {{ offer.status }}
-                                        </span>
-                                        <button class="btn btn-small btn-outline" @click="cancelPost('offer', offer.id)"
-                                            v-if="offer.status === '募集中'">取消</button>
-                                        <button class="btn btn-small btn-success"
-                                            @click="completePost('offer', offer.id)"
-                                            v-if="offer.status === '募集中'">成立</button>
+
+                                    <!-- コメントセクション -->
+                                    <div class="comments-section">
+                                        <div class="comments-toggle" @click="toggleComments(offer.id, 'offer')">
+                                            <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(offer.id,
+                                            'offer') > 0
+                                            ? getCommentCount(offer.id, 'offer') +
+                                            '件のコメント' : 'コメントする' }}
+                                        </div>
+                                        <div class="comments-list" v-if="expandedComments[offer.id + '_offer']">
+                                            <div v-if="getCommentsForPost(offer.id, 'offer').length === 0"
+                                                class="no-comments">
+                                                まだコメントはありません
+                                            </div>
+                                            <div v-else class="comment-item"
+                                                v-for="comment in getCommentsForPost(offer.id, 'offer')"
+                                                :key="comment.id">
+                                                <div class="comment-header">
+                                                    <span class="comment-author">{{ comment.displayName }}</span>
+                                                    <span class="comment-time">{{ formatTime(comment.createdAt)
+                                                        }}</span>
+                                                </div>
+                                                <div class="comment-content">{{ comment.content }}</div>
+                                            </div>
+                                            <div class="comment-input-area">
+                                                <input type="text" class="comment-input"
+                                                    v-model="commentInputs[offer.id + '_offer']"
+                                                    placeholder="コメントを入力..."
+                                                    @keyup.enter="submitComment(offer.id, 'offer')">
+                                                <button class="comment-submit" @click="submitComment(offer.id, 'offer')"
+                                                    :disabled="!commentInputs[offer.id + '_offer'] || commentSubmitting[offer.id + '_offer']">{{
+                                                    commentSubmitting[offer.id + '_offer'] ? '送信中...' : '送信'
+                                                    }}</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -805,22 +850,61 @@
                                 <p>投稿なし</p>
                             </div>
                             <div v-else>
-                                <div class="my-post" v-for="req in myRequests" :key="req.id">
-                                    <div class="my-post-info">
-                                        <div class="my-post-date">{{ req.desiredDates }}</div>
-                                        <div class="my-post-detail">{{ req.quantity }}枚希望<span v-if="req.seatType"> / {{
-                                                req.seatType }}</span></div>
+                                <div class="my-post-wrapper" v-for="req in myRequests" :key="req.id">
+                                    <div class="my-post">
+                                        <div class="my-post-info">
+                                            <div class="my-post-date">{{ req.desiredDates }}</div>
+                                            <div class="my-post-detail">{{ req.quantity }}枚希望<span v-if="req.seatType">
+                                                    / {{ req.seatType }}</span></div>
+                                        </div>
+                                        <div class="my-post-actions">
+                                            <span class="status-badge"
+                                                :class="req.status === '募集中' ? 'status-active' : 'status-completed'">
+                                                {{ req.status }}
+                                            </span>
+                                            <button class="btn btn-small btn-outline"
+                                                @click="cancelPost('request', req.id)"
+                                                v-if="req.status === '募集中'">取消</button>
+                                            <button class="btn btn-small btn-success"
+                                                @click="completePost('request', req.id)"
+                                                v-if="req.status === '募集中'">成立</button>
+                                        </div>
                                     </div>
-                                    <div class="my-post-actions">
-                                        <span class="status-badge"
-                                            :class="req.status === '募集中' ? 'status-active' : 'status-completed'">
-                                            {{ req.status }}
-                                        </span>
-                                        <button class="btn btn-small btn-outline" @click="cancelPost('request', req.id)"
-                                            v-if="req.status === '募集中'">取消</button>
-                                        <button class="btn btn-small btn-success"
-                                            @click="completePost('request', req.id)"
-                                            v-if="req.status === '募集中'">成立</button>
+
+                                    <!-- コメントセクション -->
+                                    <div class="comments-section">
+                                        <div class="comments-toggle" @click="toggleComments(req.id, 'request')">
+                                            <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(req.id,
+                                            'request') > 0
+                                            ? getCommentCount(req.id, 'request') +
+                                            '件のコメント' : 'コメントする' }}
+                                        </div>
+                                        <div class="comments-list" v-if="expandedComments[req.id + '_request']">
+                                            <div v-if="getCommentsForPost(req.id, 'request').length === 0"
+                                                class="no-comments">
+                                                まだコメントはありません
+                                            </div>
+                                            <div v-else class="comment-item"
+                                                v-for="comment in getCommentsForPost(req.id, 'request')"
+                                                :key="comment.id">
+                                                <div class="comment-header">
+                                                    <span class="comment-author">{{ comment.displayName }}</span>
+                                                    <span class="comment-time">{{ formatTime(comment.createdAt)
+                                                        }}</span>
+                                                </div>
+                                                <div class="comment-content">{{ comment.content }}</div>
+                                            </div>
+                                            <div class="comment-input-area">
+                                                <input type="text" class="comment-input"
+                                                    v-model="commentInputs[req.id + '_request']"
+                                                    placeholder="コメントを入力..."
+                                                    @keyup.enter="submitComment(req.id, 'request')">
+                                                <button class="comment-submit" @click="submitComment(req.id, 'request')"
+                                                    :disabled="!commentInputs[req.id + '_request'] || commentSubmitting[req.id + '_request']">{{
+                                                    commentSubmitting[req.id + '_request'] ? '送信中...' : '送信'
+                                                    }}</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
