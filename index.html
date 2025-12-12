@@ -830,8 +830,8 @@
             <template v-if="currentPage === 'home'">
                 <!-- タブ -->
                 <div class="tabs">
-                    <div class="tab" :class="{ active: activeTab === 'offers' }" @click="activeTab = 'offers'">
-                        <i class="fa-solid fa-ticket"></i> 譲りたい
+                    <div class="tab" :class="{ active: activeTab === 'exchanges' }" @click="activeTab = 'exchanges'">
+                        <i class="fa-solid fa-exchange-alt"></i> 交換したい
                     </div>
                     <div class="tab" :class="{ active: activeTab === 'requests' }" @click="activeTab = 'requests'">
                         <i class="fa-solid fa-magnifying-glass"></i> 探しています
@@ -841,48 +841,50 @@
                     </div>
                 </div>
 
-                <!-- 譲りたい一覧 -->
-                <div v-if="activeTab === 'offers'">
-                    <div v-if="offers.length === 0" class="empty">
-                        <div class="empty-icon"><i class="fa-regular fa-face-smile"></i></div>
+                <!-- 交換したい一覧 -->
+                <div v-if="activeTab === 'exchanges'">
+                    <div v-if="exchanges.length === 0" class="empty">
+                        <div class="empty-icon"><i class="fa-solid fa-exchange-alt"></i></div>
                         <p>まだ投稿がありません</p>
                     </div>
                     <div v-else>
-                        <div class="card" v-for="offer in offers" :key="offer.id">
+                        <div class="card" v-for="ex in exchanges" :key="ex.id">
                             <div class="card-header">
-                                <span class="card-user">{{ offer.displayName }}</span>
-                                <span class="card-date">{{ offer.showDate }}</span>
+                                <span class="card-user">{{ ex.displayName }}</span>
+                                <span class="card-tag" style="margin-left: auto;">{{ ex.seatType }}</span>
+                            </div>
+                            <div class="card-body" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                                <div><strong style="color: var(--secondary);">出:</strong> {{ ex.offerDate }}</div>
+                                <div><strong style="color: var(--accent);">求:</strong> {{ ex.wantDates }}</div>
                             </div>
                             <div class="card-body">
-                                <span class="card-tag">{{ offer.quantity }}枚</span>
-                                <span class="card-tag">{{ offer.seatType }}</span>
-                                <span class="card-tag" v-if="offer.seatInfo">{{ offer.seatInfo }}</span>
+                                <span class="card-tag">{{ ex.quantity }}枚</span>
                             </div>
-                            <p class="card-comment" v-if="offer.comment">{{ offer.comment }}</p>
+                            <p class="card-comment" v-if="ex.comment">{{ ex.comment }}</p>
 
                             <!-- コメントセクション -->
                             <div class="comments-section">
-                                <div class="comments-toggle" @click="toggleComments(offer.id, 'offer')">
+                                <div class="comments-toggle" @click="toggleComments(ex.id, 'exchange')">
                                     <template v-if="!commentsLoaded">
                                         <i class="fa-regular fa-comment-dots"></i>
                                         <span style="opacity: 0.6;"><span class="spinner"
                                                 style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:4px;"></span>読み込み中</span>
                                     </template>
                                     <template v-else>
-                                        <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(offer.id, 'offer')
+                                        <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(ex.id, 'exchange')
                                         > 0
-                                        ? getCommentCount(offer.id, 'offer') +
+                                        ? getCommentCount(ex.id, 'exchange') +
                                         '件のコメント' : 'コメントする' }}
                                     </template>
                                 </div>
-                                <div v-if="expandedComments[offer.id + '_offer']" class="comments-list">
+                                <div v-if="expandedComments[ex.id + '_exchange']" class="comments-list">
                                     <!-- ローディング表示 -->
-                                    <div v-if="commentLoading[offer.id + '_offer']" class="comment-loading">
+                                    <div v-if="commentLoading[ex.id + '_exchange']" class="comment-loading">
                                         <div class="spinner"></div>
                                         <span>読み込み中...</span>
                                     </div>
                                     <template v-else>
-                                        <div v-for="comment in getCommentsForPost(offer.id, 'offer')" :key="comment.id"
+                                        <div v-for="comment in getCommentsForPost(ex.id, 'exchange')" :key="comment.id"
                                             class="comment-item">
                                             <div class="comment-header">
                                                 <span class="comment-author">{{ comment.displayName }}</span>
@@ -890,17 +892,17 @@
                                             </div>
                                             <div class="comment-content">{{ comment.content }}</div>
                                         </div>
-                                        <div v-if="getCommentsForPost(offer.id, 'offer').length === 0"
+                                        <div v-if="getCommentsForPost(ex.id, 'exchange').length === 0"
                                             style="text-align: center; padding: 12px; color: var(--text-muted); font-size: 13px;">
                                             まだコメントはありません
                                         </div>
                                         <div class="comment-input-area">
                                             <input type="text" class="comment-input"
-                                                v-model="commentInputs[offer.id + '_offer']" placeholder="コメントを入力..."
-                                                @keyup.enter="submitComment(offer.id, 'offer')">
-                                            <button class="comment-submit" @click="submitComment(offer.id, 'offer')"
-                                                :disabled="!commentInputs[offer.id + '_offer'] || commentSubmitting[offer.id + '_offer']">{{
-                                                commentSubmitting[offer.id + '_offer'] ? '送信中...' : '送信' }}</button>
+                                                v-model="commentInputs[ex.id + '_exchange']" placeholder="コメントを入力..."
+                                                @keyup.enter="submitComment(ex.id, 'exchange')">
+                                            <button class="comment-submit" @click="submitComment(ex.id, 'exchange')"
+                                                :disabled="!commentInputs[ex.id + '_exchange'] || commentSubmitting[ex.id + '_exchange']">{{
+                                                commentSubmitting[ex.id + '_exchange'] ? '送信中...' : '送信' }}</button>
                                         </div>
                                     </template>
                                 </div>
@@ -995,48 +997,49 @@
                     </div>
 
                     <div class="section">
-                        <div class="section-title">譲りたい投稿</div>
+                        <div class="section-title">交換したい投稿</div>
                         <div class="card">
-                            <div v-if="myOffers.length === 0" class="empty" style="padding: 20px;">
+                            <div v-if="myExchanges.length === 0" class="empty" style="padding: 20px;">
                                 <p>投稿なし</p>
                             </div>
                             <div v-else>
-                                <div class="my-post-wrapper" v-for="offer in myOffers" :key="offer.id">
+                                <div class="my-post-wrapper" v-for="ex in myExchanges" :key="ex.id">
                                     <div class="my-post">
                                         <div class="my-post-info">
-                                            <div class="my-post-date">{{ offer.showDate }}</div>
-                                            <div class="my-post-detail">{{ offer.quantity }}枚<span
-                                                    v-if="offer.seatType"> / {{ offer.seatType }}</span></div>
+                                            <div class="my-post-date">出: {{ ex.offerDate }} → 求: {{ ex.wantDates }}
+                                            </div>
+                                            <div class="my-post-detail">{{ ex.quantity }}枚<span v-if="ex.seatType"> / {{
+                                                    ex.seatType }}</span></div>
                                         </div>
                                         <div class="my-post-actions">
                                             <span class="status-badge"
-                                                :class="offer.status === '募集中' ? 'status-active' : 'status-completed'">
-                                                {{ offer.status }}
+                                                :class="ex.status === '募集中' ? 'status-active' : 'status-completed'">
+                                                {{ ex.status }}
                                             </span>
                                             <button class="btn btn-small btn-outline"
-                                                @click="cancelPost('offer', offer.id)"
-                                                v-if="offer.status === '募集中'">取消</button>
+                                                @click="cancelPost('exchange', ex.id)"
+                                                v-if="ex.status === '募集中'">取消</button>
                                             <button class="btn btn-small btn-success"
-                                                @click="completePost('offer', offer.id)"
-                                                v-if="offer.status === '募集中'">成立</button>
+                                                @click="completePost('exchange', ex.id)"
+                                                v-if="ex.status === '募集中'">成立</button>
                                         </div>
                                     </div>
 
                                     <!-- コメントセクション -->
                                     <div class="comments-section">
-                                        <div class="comments-toggle" @click="toggleComments(offer.id, 'offer')">
-                                            <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(offer.id,
-                                            'offer') > 0
-                                            ? getCommentCount(offer.id, 'offer') +
+                                        <div class="comments-toggle" @click="toggleComments(ex.id, 'exchange')">
+                                            <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(ex.id,
+                                            'exchange') > 0
+                                            ? getCommentCount(ex.id, 'exchange') +
                                             '件のコメント' : 'コメントする' }}
                                         </div>
-                                        <div class="comments-list" v-if="expandedComments[offer.id + '_offer']">
-                                            <div v-if="getCommentsForPost(offer.id, 'offer').length === 0"
+                                        <div class="comments-list" v-if="expandedComments[ex.id + '_exchange']">
+                                            <div v-if="getCommentsForPost(ex.id, 'exchange').length === 0"
                                                 class="no-comments">
                                                 まだコメントはありません
                                             </div>
                                             <div v-else class="comment-item"
-                                                v-for="comment in getCommentsForPost(offer.id, 'offer')"
+                                                v-for="comment in getCommentsForPost(ex.id, 'exchange')"
                                                 :key="comment.id">
                                                 <div class="comment-header">
                                                     <span class="comment-author">{{ comment.displayName }}</span>
@@ -1047,12 +1050,12 @@
                                             </div>
                                             <div class="comment-input-area">
                                                 <input type="text" class="comment-input"
-                                                    v-model="commentInputs[offer.id + '_offer']"
+                                                    v-model="commentInputs[ex.id + '_exchange']"
                                                     placeholder="コメントを入力..."
-                                                    @keyup.enter="submitComment(offer.id, 'offer')">
-                                                <button class="comment-submit" @click="submitComment(offer.id, 'offer')"
-                                                    :disabled="!commentInputs[offer.id + '_offer'] || commentSubmitting[offer.id + '_offer']">{{
-                                                    commentSubmitting[offer.id + '_offer'] ? '送信中...' : '送信'
+                                                    @keyup.enter="submitComment(ex.id, 'exchange')">
+                                                <button class="comment-submit" @click="submitComment(ex.id, 'exchange')"
+                                                    :disabled="!commentInputs[ex.id + '_exchange'] || commentSubmitting[ex.id + '_exchange']">{{
+                                                    commentSubmitting[ex.id + '_exchange'] ? '送信中...' : '送信'
                                                     }}</button>
                                             </div>
                                         </div>
@@ -1133,8 +1136,8 @@
 
                 <!-- FAB -->
                 <div class="fab-container">
-                    <button class="fab fab-offer" @click="currentPage = 'postOffer'">
-                        <i class="fa-solid fa-ticket"></i> 譲りたい
+                    <button class="fab fab-offer" @click="currentPage = 'postExchange'">
+                        <i class="fa-solid fa-exchange-alt"></i> 交換したい
                     </button>
                     <button class="fab fab-request" @click="currentPage = 'postRequest'">
                         <i class="fa-solid fa-magnifying-glass"></i> 探しています
@@ -1142,22 +1145,34 @@
                 </div>
             </template>
 
-            <!-- 譲りたい投稿フォーム -->
-            <template v-if="currentPage === 'postOffer'">
+            <!-- 交換したい投稿フォーム -->
+            <template v-if="currentPage === 'postExchange'">
                 <div class="nav-back" @click="currentPage = 'home'"><i class="fa-solid fa-arrow-left"></i> 戻る</div>
-                <h2 class="page-title"><i class="fa-solid fa-ticket"></i> チケットを譲りたい</h2>
+                <h2 class="page-title"><i class="fa-solid fa-exchange-alt"></i> チケットを交換したい</h2>
 
                 <div class="form-section">
-                    <label class="form-label">公演日時 *</label>
-                    <select class="form-input" v-model="offerForm.showDate">
+                    <label class="form-label">交換に出すチケット *</label>
+                    <select class="form-input" v-model="exchangeForm.offerDate">
                         <option value="">選択してください</option>
                         <option v-for="date in showDates" :key="date.id" :value="date.label">{{ date.label }}</option>
                     </select>
                 </div>
 
                 <div class="form-section">
+                    <label class="form-label">求チケット（複数選択可） *</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item" v-for="date in showDates" :key="date.id"
+                            :class="{ selected: exchangeForm.wantDates.includes(date.label) }">
+                            <input type="checkbox" :value="date.label" v-model="exchangeForm.wantDates">
+                            <span class="checkbox-box"></span>
+                            <span>{{ date.label }}</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-section">
                     <label class="form-label">枚数 *</label>
-                    <select class="form-input" v-model="offerForm.quantity">
+                    <select class="form-input" v-model="exchangeForm.quantity">
                         <option value="">選択してください</option>
                         <option value="1">1枚</option>
                         <option value="2">2枚</option>
@@ -1167,26 +1182,21 @@
                 </div>
 
                 <div class="form-section">
-                    <label class="form-label">座席種別 *</label>
-                    <select class="form-input" v-model="offerForm.seatType">
+                    <label class="form-label">座席種別</label>
+                    <select class="form-input" v-model="exchangeForm.seatType">
                         <option value="自由席">自由席</option>
                         <option value="指定席">指定席</option>
                     </select>
                 </div>
 
-                <div class="form-section" v-if="offerForm.seatType === '指定席'">
-                    <label class="form-label">座席情報</label>
-                    <input type="text" class="form-input" v-model="offerForm.seatInfo" placeholder="例: A列10番">
-                </div>
-
                 <div class="form-section">
                     <label class="form-label">コメント（任意）</label>
-                    <textarea class="form-input" rows="3" v-model="offerForm.comment"
+                    <textarea class="form-input" rows="3" v-model="exchangeForm.comment"
                         placeholder="その他伝えたいこと"></textarea>
                 </div>
 
-                <button class="btn btn-accent" @click="submitOffer"
-                    :disabled="!offerForm.showDate || !offerForm.quantity || submitting">
+                <button class="btn btn-accent" @click="submitExchange"
+                    :disabled="!exchangeForm.offerDate || !exchangeForm.wantDates.length || !exchangeForm.quantity || submitting">
                     {{ submitting ? '送信中...' : '投稿する' }}
                 </button>
             </template>
@@ -1294,7 +1304,7 @@
                 // State
                 const loading = ref(true);
                 const currentPage = ref('home');
-                const activeTab = ref('offers');
+                const activeTab = ref('exchanges');
                 const submitting = ref(false);
                 const toast = ref('');
 
@@ -1316,9 +1326,9 @@
                     { id: '1227_1400', label: '12/27（土）14:00' },
                     { id: '1227_1730', label: '12/27（土）17:30' }
                 ]);
-                const offers = ref([]);
+                const exchanges = ref([]);
                 const requests = ref([]);
-                const myOffers = ref([]);
+                const myExchanges = ref([]);
                 const myRequests = ref([]);
 
                 // Comments
@@ -1330,11 +1340,11 @@
                 const commentsLoaded = ref(false);
 
                 // Forms
-                const offerForm = ref({
-                    showDate: '',
+                const exchangeForm = ref({
+                    offerDate: '',
+                    wantDates: [],
                     quantity: '',
                     seatType: '自由席',
-                    seatInfo: '',
                     comment: ''
                 });
 
@@ -1366,19 +1376,19 @@
 
                 const loadData = async () => {
                     try {
-                        const [offersRes, requestsRes, myPostsRes] = await Promise.all([
-                            callApi('getOffers'),
+                        const [exchangesRes, requestsRes, myPostsRes] = await Promise.all([
+                            callApi('getExchanges'),
                             callApi('getRequests'),
                             callApi('getMyPosts', { userId: userId.value })
                         ]);
 
-                        offers.value = offersRes;
+                        exchanges.value = exchangesRes;
                         requests.value = requestsRes;
-                        myOffers.value = myPostsRes.offers || [];
+                        myExchanges.value = myPostsRes.exchanges || [];
                         myRequests.value = myPostsRes.requests || [];
 
                         // コメントをバックグラウンドで取得
-                        loadAllComments(offersRes, requestsRes);
+                        loadAllComments(exchangesRes, requestsRes);
                     } catch (e) {
                         console.error('データ取得エラー:', e);
                     }
@@ -1386,14 +1396,14 @@
                 };
 
                 // 全投稿のコメントを取得
-                const loadAllComments = async (offersList, requestsList) => {
+                const loadAllComments = async (exchangesList, requestsList) => {
                     try {
                         // 全投稿のコメントを並列取得
                         const commentPromises = [];
 
-                        offersList.forEach(offer => {
+                        exchangesList.forEach(ex => {
                             commentPromises.push(
-                                callApi('getComments', { postId: offer.id, postType: 'offer' })
+                                callApi('getComments', { postId: ex.id, postType: 'exchange' })
                             );
                         });
 
@@ -1481,20 +1491,22 @@
                     registering.value = false;
                 };
 
-                const submitOffer = async () => {
+                const submitExchange = async () => {
                     submitting.value = true;
                     try {
-                        await callApi('postOffer', {
+                        // 求チケットをカンマ区切りに変換
+                        const wantDatesStr = exchangeForm.value.wantDates.join(',');
+                        await callApi('postExchange', {
                             userId: userId.value,
                             displayName: displayName.value,
-                            showDate: offerForm.value.showDate,
-                            quantity: offerForm.value.quantity,
-                            seatType: offerForm.value.seatType,
-                            seatInfo: offerForm.value.seatInfo,
-                            comment: offerForm.value.comment
+                            offerDate: exchangeForm.value.offerDate,
+                            wantDates: wantDatesStr,
+                            quantity: exchangeForm.value.quantity,
+                            seatType: exchangeForm.value.seatType,
+                            comment: exchangeForm.value.comment
                         });
                         showToast('投稿しました！');
-                        offerForm.value = { showDate: '', quantity: '', seatType: '自由席', seatInfo: '', comment: '' };
+                        exchangeForm.value = { offerDate: '', wantDates: [], quantity: '', seatType: '自由席', comment: '' };
                         currentPage.value = 'home';
                         await loadData();
                     } catch (e) {
@@ -1637,13 +1649,13 @@
                     submitting,
                     toast,
                     showDates,
-                    offers,
+                    exchanges,
                     requests,
-                    myOffers,
+                    myExchanges,
                     myRequests,
-                    offerForm,
+                    exchangeForm,
                     requestForm,
-                    submitOffer,
+                    submitExchange,
                     submitRequest,
                     cancelPost,
                     completePost,
