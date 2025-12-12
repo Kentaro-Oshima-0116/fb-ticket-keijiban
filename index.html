@@ -695,7 +695,8 @@
                                             v-model="commentInputs[offer.id + '_offer']" placeholder="コメントを入力..."
                                             @keyup.enter="submitComment(offer.id, 'offer')">
                                         <button class="comment-submit" @click="submitComment(offer.id, 'offer')"
-                                            :disabled="!commentInputs[offer.id + '_offer']">送信</button>
+                                            :disabled="!commentInputs[offer.id + '_offer'] || commentSubmitting[offer.id + '_offer']">{{
+                                            commentSubmitting[offer.id + '_offer'] ? '送信中...' : '送信' }}</button>
                                     </div>
                                 </div>
                             </div>
@@ -742,7 +743,8 @@
                                             v-model="commentInputs[req.id + '_request']" placeholder="コメントを入力..."
                                             @keyup.enter="submitComment(req.id, 'request')">
                                         <button class="comment-submit" @click="submitComment(req.id, 'request')"
-                                            :disabled="!commentInputs[req.id + '_request']">送信</button>
+                                            :disabled="!commentInputs[req.id + '_request'] || commentSubmitting[req.id + '_request']">{{
+                                            commentSubmitting[req.id + '_request'] ? '送信中...' : '送信' }}</button>
                                     </div>
                                 </div>
                             </div>
@@ -961,6 +963,7 @@
                 const allComments = ref([]);
                 const expandedComments = ref({});
                 const commentInputs = ref({});
+                const commentSubmitting = ref({});
 
                 // Forms
                 const offerForm = ref({
@@ -1118,6 +1121,7 @@
                     const content = commentInputs.value[key];
                     if (!content) return;
 
+                    commentSubmitting.value[key] = true;
                     try {
                         await callApi('postComment', {
                             postId,
@@ -1137,6 +1141,7 @@
                     } catch (e) {
                         showToast('エラーが発生しました');
                     }
+                    commentSubmitting.value[key] = false;
                 };
 
                 const formatTime = (dateValue) => {
@@ -1196,6 +1201,7 @@
                     allComments,
                     expandedComments,
                     commentInputs,
+                    commentSubmitting,
                     toggleComments,
                     getCommentCount,
                     getCommentsForPost,
