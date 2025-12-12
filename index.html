@@ -1020,17 +1020,17 @@
                             </div>
                         </div>
                         <div class="card" v-for="ex in myExchanges" :key="ex.id" style="margin-bottom: 12px;">
-                            <div style="padding: 12px;">
+                            <div class="card-body" style="flex-direction: column; align-items: flex-start; gap: 8px;">
                                 <div
-                                    style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px;">
-                                    <strong style="color: var(--secondary); font-size: 13px;">出:</strong>
+                                    style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 8px;">
+                                    <strong style="color: var(--secondary);">出:</strong>
                                     <span class="card-tag"
                                         style="white-space: nowrap; background: rgba(0,174,172,0.15); color: var(--secondary);">{{
                                         ex.offerDate }}</span>
                                 </div>
                                 <div
-                                    style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px;">
-                                    <strong style="color: #FF6B6B; font-size: 13px;">求:</strong>
+                                    style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 8px;">
+                                    <strong style="color: #FF6B6B;">求:</strong>
                                     <span class="card-tag" v-for="(date, idx) in splitDates(ex.wantDates)" :key="idx"
                                         style="white-space: nowrap; background: rgba(255,107,107,0.15); color: #FF6B6B;">{{
                                         date }}</span>
@@ -1089,7 +1089,7 @@
                             </div>
                         </div>
                         <div class="card" v-for="req in myRequests" :key="req.id" style="margin-bottom: 12px;">
-                            <div style="padding: 12px;">
+                            <div class="card-body" style="flex-direction: column; align-items: flex-start; gap: 8px;">
                                 <div
                                     style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 8px;">
                                     <strong style="color: #FF6B6B;">求:</strong>
