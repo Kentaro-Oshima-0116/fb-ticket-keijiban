@@ -505,6 +505,94 @@
                 transform: translateX(-50%) translateY(0);
             }
         }
+
+        /* コメントセクション */
+        .comments-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .comments-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--secondary);
+            cursor: pointer;
+            padding: 4px 0;
+        }
+
+        .comments-list {
+            margin-top: 10px;
+        }
+
+        .comment-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .comment-author {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--accent);
+        }
+
+        .comment-time {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .comment-content {
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .comment-input-area {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .comment-input {
+            flex: 1;
+            padding: 10px 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .comment-submit {
+            padding: 10px 16px;
+            background: var(--secondary);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .comment-submit:disabled {
+            opacity: 0.5;
+        }
     </style>
 </head>
 
@@ -562,6 +650,31 @@
                                 <span class="card-tag" v-if="offer.seatInfo">{{ offer.seatInfo }}</span>
                             </div>
                             <p class="card-comment" v-if="offer.comment">{{ offer.comment }}</p>
+
+                            <!-- コメントセクション -->
+                            <div class="comments-section">
+                                <div class="comments-toggle" @click="toggleComments(offer.id, 'offer')">
+                                    💬 {{ getCommentCount(offer.id, 'offer') > 0 ? getCommentCount(offer.id, 'offer') +
+                                    '件のコメント' : 'コメントする' }}
+                                </div>
+                                <div v-if="expandedComments[offer.id + '_offer']" class="comments-list">
+                                    <div v-for="comment in getCommentsForPost(offer.id, 'offer')" :key="comment.id"
+                                        class="comment-item">
+                                        <div class="comment-header">
+                                            <span class="comment-author">{{ comment.displayName }}</span>
+                                            <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+                                        </div>
+                                        <div class="comment-content">{{ comment.content }}</div>
+                                    </div>
+                                    <div class="comment-input-area">
+                                        <input type="text" class="comment-input"
+                                            v-model="commentInputs[offer.id + '_offer']" placeholder="コメントを入力..."
+                                            @keyup.enter="submitComment(offer.id, 'offer')">
+                                        <button class="comment-submit" @click="submitComment(offer.id, 'offer')"
+                                            :disabled="!commentInputs[offer.id + '_offer']">送信</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -583,6 +696,31 @@
                                 <span class="card-tag" v-if="req.maxBudget">〜{{ req.maxBudget }}円</span>
                             </div>
                             <p class="card-comment" v-if="req.comment">{{ req.comment }}</p>
+
+                            <!-- コメントセクション -->
+                            <div class="comments-section">
+                                <div class="comments-toggle" @click="toggleComments(req.id, 'request')">
+                                    💬 {{ getCommentCount(req.id, 'request') > 0 ? getCommentCount(req.id, 'request') +
+                                    '件のコメント' : 'コメントする' }}
+                                </div>
+                                <div v-if="expandedComments[req.id + '_request']" class="comments-list">
+                                    <div v-for="comment in getCommentsForPost(req.id, 'request')" :key="comment.id"
+                                        class="comment-item">
+                                        <div class="comment-header">
+                                            <span class="comment-author">{{ comment.displayName }}</span>
+                                            <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+                                        </div>
+                                        <div class="comment-content">{{ comment.content }}</div>
+                                    </div>
+                                    <div class="comment-input-area">
+                                        <input type="text" class="comment-input"
+                                            v-model="commentInputs[req.id + '_request']" placeholder="コメントを入力..."
+                                            @keyup.enter="submitComment(req.id, 'request')">
+                                        <button class="comment-submit" @click="submitComment(req.id, 'request')"
+                                            :disabled="!commentInputs[req.id + '_request']">送信</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -787,6 +925,11 @@
                 const myOffers = ref([]);
                 const myRequests = ref([]);
 
+                // Comments
+                const allComments = ref([]);
+                const expandedComments = ref({});
+                const commentInputs = ref({});
+
                 // Forms
                 const offerForm = ref({
                     showDate: '',
@@ -906,6 +1049,74 @@
                     }
                 };
 
+                // Comment methods
+                const toggleComments = async (postId, postType) => {
+                    const key = postId + '_' + postType;
+                    expandedComments.value[key] = !expandedComments.value[key];
+
+                    if (expandedComments.value[key]) {
+                        // コメントを読み込む
+                        try {
+                            const comments = await callApi('getComments', { postId, postType });
+                            // 既存のコメントを更新
+                            allComments.value = allComments.value.filter(c =>
+                                !(c.postId == postId && c.postType === postType)
+                            );
+                            allComments.value.push(...comments);
+                        } catch (e) {
+                            console.error('コメント取得エラー:', e);
+                        }
+                    }
+                };
+
+                const getCommentCount = (postId, postType) => {
+                    return allComments.value.filter(c =>
+                        c.postId == postId && c.postType === postType
+                    ).length;
+                };
+
+                const getCommentsForPost = (postId, postType) => {
+                    return allComments.value.filter(c =>
+                        c.postId == postId && c.postType === postType
+                    );
+                };
+
+                const submitComment = async (postId, postType) => {
+                    const key = postId + '_' + postType;
+                    const content = commentInputs.value[key];
+                    if (!content) return;
+
+                    try {
+                        await callApi('postComment', {
+                            postId,
+                            postType,
+                            userId: userId.value,
+                            displayName: displayName.value,
+                            content
+                        });
+                        commentInputs.value[key] = '';
+                        // コメントを再読み込み
+                        const comments = await callApi('getComments', { postId, postType });
+                        allComments.value = allComments.value.filter(c =>
+                            !(c.postId == postId && c.postType === postType)
+                        );
+                        allComments.value.push(...comments);
+                        showToast('コメントしました');
+                    } catch (e) {
+                        showToast('エラーが発生しました');
+                    }
+                };
+
+                const formatTime = (dateValue) => {
+                    if (!dateValue) return '';
+                    const date = new Date(dateValue);
+                    const month = date.getMonth() + 1;
+                    const day = date.getDate();
+                    const hours = date.getHours();
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    return `${month}/${day} ${hours}:${minutes}`;
+                };
+
                 // Initialize
                 onMounted(async () => {
                     try {
@@ -948,7 +1159,16 @@
                     submitOffer,
                     submitRequest,
                     cancelPost,
-                    completePost
+                    completePost,
+                    // Comments
+                    allComments,
+                    expandedComments,
+                    commentInputs,
+                    toggleComments,
+                    getCommentCount,
+                    getCommentsForPost,
+                    submitComment,
+                    formatTime
                 };
             }
         }).mount('#app');
