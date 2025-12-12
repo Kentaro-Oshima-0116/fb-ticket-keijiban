@@ -669,7 +669,7 @@
                             </div>
                             <div class="card-body">
                                 <span class="card-tag">{{ offer.quantity }}枚</span>
-                                <span class="card-tag" v-if="offer.price">{{ offer.price }}円</span>
+                                <span class="card-tag">{{ offer.seatType }}</span>
                                 <span class="card-tag" v-if="offer.seatInfo">{{ offer.seatInfo }}</span>
                             </div>
                             <p class="card-comment" v-if="offer.comment">{{ offer.comment }}</p>
@@ -717,7 +717,7 @@
                             </div>
                             <div class="card-body">
                                 <span class="card-tag">{{ req.quantity }}枚希望</span>
-                                <span class="card-tag" v-if="req.maxBudget">〜{{ req.maxBudget }}円</span>
+                                <span class="card-tag">{{ req.seatType }}</span>
                             </div>
                             <p class="card-comment" v-if="req.comment">{{ req.comment }}</p>
 
@@ -762,8 +762,7 @@
                                 <div class="my-post" v-for="offer in myOffers" :key="offer.id">
                                     <div class="my-post-info">
                                         <div class="my-post-date">{{ offer.showDate }}</div>
-                                        <div class="my-post-detail">{{ offer.quantity }}枚 {{ offer.price ? offer.price +
-                                            '円' : '' }}</div>
+                                        <div class="my-post-detail">{{ offer.quantity }}枚 ・ {{ offer.seatType }}</div>
                                     </div>
                                     <div class="my-post-actions">
                                         <span class="status-badge"
