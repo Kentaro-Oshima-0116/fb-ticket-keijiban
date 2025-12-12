@@ -1046,94 +1046,95 @@
                                 <button class="btn btn-small btn-success" @click="completePost('exchange', ex.id)"
                                     v-if="ex.status === '募集中'">成立</button>
                             </div>
-                        </div>
-                        <!-- コメントセクション -->
-                        <div class="comments-section">
-                            <div class="comments-toggle" @click="toggleComments(ex.id, 'exchange')">
-                                <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(ex.id, 'exchange') > 0
-                                ? getCommentCount(ex.id, 'exchange') + '件のコメント' : 'コメントする' }}
-                            </div>
-                            <div class="comments-list" v-if="expandedComments[ex.id + '_exchange']">
-                                <div v-if="getCommentsForPost(ex.id, 'exchange').length === 0" class="no-comments">
-                                    まだコメントはありません</div>
-                                <div v-else class="comment-item"
-                                    v-for="comment in getCommentsForPost(ex.id, 'exchange')" :key="comment.id">
-                                    <div class="comment-header">
-                                        <span class="comment-author">{{ comment.displayName }}</span>
-                                        <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+                            <!-- コメントセクション -->
+                            <div class="comments-section">
+                                <div class="comments-toggle" @click="toggleComments(ex.id, 'exchange')">
+                                    <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(ex.id, 'exchange') > 0
+                                    ? getCommentCount(ex.id, 'exchange') + '件のコメント' : 'コメントする' }}
+                                </div>
+                                <div class="comments-list" v-if="expandedComments[ex.id + '_exchange']">
+                                    <div v-if="getCommentsForPost(ex.id, 'exchange').length === 0" class="no-comments">
+                                        まだコメントはありません</div>
+                                    <div v-else class="comment-item"
+                                        v-for="comment in getCommentsForPost(ex.id, 'exchange')" :key="comment.id">
+                                        <div class="comment-header">
+                                            <span class="comment-author">{{ comment.displayName }}</span>
+                                            <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+                                        </div>
+                                        <div class="comment-content">{{ comment.content }}</div>
                                     </div>
-                                    <div class="comment-content">{{ comment.content }}</div>
-                                </div>
-                                <div class="comment-input-area">
-                                    <input type="text" class="comment-input"
-                                        v-model="commentInputs[ex.id + '_exchange']" placeholder="コメントを入力..."
-                                        @keyup.enter="submitComment(ex.id, 'exchange')">
-                                    <button class="comment-submit" @click="submitComment(ex.id, 'exchange')"
-                                        :disabled="!commentInputs[ex.id + '_exchange'] || commentSubmitting[ex.id + '_exchange']">{{
-                                        commentSubmitting[ex.id + '_exchange'] ? '送信中...' : '送信' }}</button>
+                                    <div class="comment-input-area">
+                                        <input type="text" class="comment-input"
+                                            v-model="commentInputs[ex.id + '_exchange']" placeholder="コメントを入力..."
+                                            @keyup.enter="submitComment(ex.id, 'exchange')">
+                                        <button class="comment-submit" @click="submitComment(ex.id, 'exchange')"
+                                            :disabled="!commentInputs[ex.id + '_exchange'] || commentSubmitting[ex.id + '_exchange']">{{
+                                            commentSubmitting[ex.id + '_exchange'] ? '送信中...' : '送信' }}</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="section">
-                    <div class="section-title">探しています投稿</div>
-                    <div v-if="myRequests.length === 0" class="card" style="padding: 20px;">
-                        <div class="empty">
-                            <p>投稿なし</p>
-                        </div>
-                    </div>
-                    <div class="card" v-for="req in myRequests" :key="req.id" style="margin-bottom: 12px;">
-                        <div class="card-body"
-                            style="flex-direction: column; align-items: flex-start; gap: 8px; padding-top: 12px;">
-                            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
-                                <strong style="color: #FF6B6B;">求:</strong>
-                                <span class="card-tag" v-for="(date, idx) in splitDates(req.desiredDates)" :key="idx"
-                                    style="white-space: nowrap; background: rgba(255,107,107,0.15); color: #FF6B6B;">{{
-                                    date }}</span>
+                    <div class="section">
+                        <div class="section-title">探しています投稿</div>
+                        <div v-if="myRequests.length === 0" class="card" style="padding: 20px;">
+                            <div class="empty">
+                                <p>投稿なし</p>
                             </div>
-                            <div style="font-size: 13px; color: var(--text-muted);">{{ req.quantity }}枚 / {{
-                                req.seatType }}</div>
                         </div>
-                        <div class="card-body" style="justify-content: flex-end; padding-top: 0;">
-                            <span class="status-badge"
-                                :class="req.status === '募集中' ? 'status-active' : 'status-completed'">{{ req.status
-                                }}</span>
-                            <button class="btn btn-small btn-outline" @click="cancelPost('request', req.id)"
-                                v-if="req.status === '募集中'">取消</button>
-                            <button class="btn btn-small btn-success" @click="completePost('request', req.id)"
-                                v-if="req.status === '募集中'">成立</button>
-                        </div>
-                    </div>
-                    <!-- コメントセクション -->
-                    <div class="comments-section">
-                        <div class="comments-toggle" @click="toggleComments(req.id, 'request')">
-                            <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(req.id, 'request') > 0
-                            ? getCommentCount(req.id, 'request') + '件のコメント' : 'コメントする' }}
-                        </div>
-                        <div class="comments-list" v-if="expandedComments[req.id + '_request']">
-                            <div v-if="getCommentsForPost(req.id, 'request').length === 0" class="no-comments">
-                                まだコメントはありません</div>
-                            <div v-else class="comment-item" v-for="comment in getCommentsForPost(req.id, 'request')"
-                                :key="comment.id">
-                                <div class="comment-header">
-                                    <span class="comment-author">{{ comment.displayName }}</span>
-                                    <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+                        <div class="card" v-for="req in myRequests" :key="req.id" style="margin-bottom: 12px;">
+                            <div class="card-body"
+                                style="flex-direction: column; align-items: flex-start; gap: 8px; padding-top: 12px;">
+                                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
+                                    <strong style="color: #FF6B6B;">求:</strong>
+                                    <span class="card-tag" v-for="(date, idx) in splitDates(req.desiredDates)"
+                                        :key="idx"
+                                        style="white-space: nowrap; background: rgba(255,107,107,0.15); color: #FF6B6B;">{{
+                                        date }}</span>
                                 </div>
-                                <div class="comment-content">{{ comment.content }}</div>
+                                <div style="font-size: 13px; color: var(--text-muted);">{{ req.quantity }}枚 / {{
+                                    req.seatType }}</div>
                             </div>
-                            <div class="comment-input-area">
-                                <input type="text" class="comment-input" v-model="commentInputs[req.id + '_request']"
-                                    placeholder="コメントを入力..." @keyup.enter="submitComment(req.id, 'request')">
-                                <button class="comment-submit" @click="submitComment(req.id, 'request')"
-                                    :disabled="!commentInputs[req.id + '_request'] || commentSubmitting[req.id + '_request']">{{
-                                    commentSubmitting[req.id + '_request'] ? '送信中...' : '送信' }}</button>
+                            <div class="card-body" style="justify-content: flex-end; padding-top: 0;">
+                                <span class="status-badge"
+                                    :class="req.status === '募集中' ? 'status-active' : 'status-completed'">{{ req.status
+                                    }}</span>
+                                <button class="btn btn-small btn-outline" @click="cancelPost('request', req.id)"
+                                    v-if="req.status === '募集中'">取消</button>
+                                <button class="btn btn-small btn-success" @click="completePost('request', req.id)"
+                                    v-if="req.status === '募集中'">成立</button>
+                            </div>
+                            <!-- コメントセクション -->
+                            <div class="comments-section">
+                                <div class="comments-toggle" @click="toggleComments(req.id, 'request')">
+                                    <i class="fa-regular fa-comment-dots"></i> {{ getCommentCount(req.id, 'request') > 0
+                                    ? getCommentCount(req.id, 'request') + '件のコメント' : 'コメントする' }}
+                                </div>
+                                <div class="comments-list" v-if="expandedComments[req.id + '_request']">
+                                    <div v-if="getCommentsForPost(req.id, 'request').length === 0" class="no-comments">
+                                        まだコメントはありません</div>
+                                    <div v-else class="comment-item"
+                                        v-for="comment in getCommentsForPost(req.id, 'request')" :key="comment.id">
+                                        <div class="comment-header">
+                                            <span class="comment-author">{{ comment.displayName }}</span>
+                                            <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+                                        </div>
+                                        <div class="comment-content">{{ comment.content }}</div>
+                                    </div>
+                                    <div class="comment-input-area">
+                                        <input type="text" class="comment-input"
+                                            v-model="commentInputs[req.id + '_request']" placeholder="コメントを入力..."
+                                            @keyup.enter="submitComment(req.id, 'request')">
+                                        <button class="comment-submit" @click="submitComment(req.id, 'request')"
+                                            :disabled="!commentInputs[req.id + '_request'] || commentSubmitting[req.id + '_request']">{{
+                                            commentSubmitting[req.id + '_request'] ? '送信中...' : '送信' }}</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-    </div>
     </div>
 
     <!-- FAB -->
