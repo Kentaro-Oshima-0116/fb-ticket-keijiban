@@ -853,11 +853,16 @@
                                 <span class="card-user">{{ ex.displayName }}</span>
                                 <span class="card-tag" style="margin-left: auto;">{{ ex.seatType }}</span>
                             </div>
-                            <div class="card-body" style="flex-direction: column; align-items: flex-start; gap: 4px;">
-                                <div><strong style="color: var(--secondary);">出:</strong> {{ ex.offerDate }}</div>
-                                <div><strong style="color: #FF6B6B;">求:</strong> <span class="card-tag"
-                                        v-for="(date, idx) in splitDates(ex.wantDates)" :key="idx"
-                                        style="margin-left: 4px; font-size: 11px;">{{ date }}</span></div>
+                            <div class="card-body" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
+                                    <strong style="color: var(--secondary);">出:</strong>
+                                    <span class="card-tag" style="white-space: nowrap;">{{ ex.offerDate }}</span>
+                                </div>
+                                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px;">
+                                    <strong style="color: #FF6B6B;">求:</strong>
+                                    <span class="card-tag" v-for="(date, idx) in splitDates(ex.wantDates)" :key="idx"
+                                        style="white-space: nowrap;">{{ date }}</span>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <span class="card-tag">{{ ex.quantity }}枚</span>
@@ -925,7 +930,8 @@
                                 <span class="card-user">{{ req.displayName }}</span>
                             </div>
                             <div class="card-body" style="flex-wrap: wrap; gap: 4px;">
-                                <span class="card-tag" v-for="(date, idx) in splitDates(req.desiredDates)" :key="idx">{{
+                                <span class="card-tag" v-for="(date, idx) in splitDates(req.desiredDates)" :key="idx"
+                                    style="white-space: nowrap;">{{
                                     date }}</span>
                             </div>
                             <div class="card-body">
@@ -1009,24 +1015,35 @@
                             </div>
                             <div v-else>
                                 <div class="my-post-wrapper" v-for="ex in myExchanges" :key="ex.id">
-                                    <div class="my-post">
-                                        <div class="my-post-info">
-                                            <div class="my-post-date">出: {{ ex.offerDate }} → 求: {{ ex.wantDates }}
-                                            </div>
+                                    <div class="my-post" style="flex-direction: column; align-items: stretch;">
+                                        <div
+                                            style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px;">
+                                            <strong style="color: var(--secondary); font-size: 13px;">出:</strong>
+                                            <span class="card-tag" style="white-space: nowrap;">{{ ex.offerDate
+                                                }}</span>
+                                        </div>
+                                        <div
+                                            style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px;">
+                                            <strong style="color: #FF6B6B; font-size: 13px;">求:</strong>
+                                            <span class="card-tag" v-for="(date, idx) in splitDates(ex.wantDates)"
+                                                :key="idx" style="white-space: nowrap;">{{ date }}</span>
+                                        </div>
+                                        <div
+                                            style="display: flex; justify-content: space-between; align-items: center;">
                                             <div class="my-post-detail">{{ ex.quantity }}枚<span v-if="ex.seatType"> / {{
                                                     ex.seatType }}</span></div>
-                                        </div>
-                                        <div class="my-post-actions">
-                                            <span class="status-badge"
-                                                :class="ex.status === '募集中' ? 'status-active' : 'status-completed'">
-                                                {{ ex.status }}
-                                            </span>
-                                            <button class="btn btn-small btn-outline"
-                                                @click="cancelPost('exchange', ex.id)"
-                                                v-if="ex.status === '募集中'">取消</button>
-                                            <button class="btn btn-small btn-success"
-                                                @click="completePost('exchange', ex.id)"
-                                                v-if="ex.status === '募集中'">成立</button>
+                                            <div class="my-post-actions">
+                                                <span class="status-badge"
+                                                    :class="ex.status === '募集中' ? 'status-active' : 'status-completed'">
+                                                    {{ ex.status }}
+                                                </span>
+                                                <button class="btn btn-small btn-outline"
+                                                    @click="cancelPost('exchange', ex.id)"
+                                                    v-if="ex.status === '募集中'">取消</button>
+                                                <button class="btn btn-small btn-success"
+                                                    @click="completePost('exchange', ex.id)"
+                                                    v-if="ex.status === '募集中'">成立</button>
+                                            </div>
                                         </div>
                                     </div>
 
